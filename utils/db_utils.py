@@ -24,7 +24,7 @@ def add_match(playerA_id, playerB_id, result, con):
     data = (playerA_id, playerB_id, result, datetime.now())
 
     cursor = con.cursor()
-    con.execute(sql, data)
+    cursor.execute(sql, data)
     match_id = cursor.lastrowid
     return match_id
 
@@ -118,4 +118,52 @@ def get_matches_table(con, player_id=None):
                     ON m.playerB = p2.id
                 ORDER BY m.date
             """)
-    return tabulate(data, headers=('player', 'player', 'result', 'date'))
+    return tabulate(data, headers=('player', 'player', 'result', 'date'), floatfmt='.0f')
+
+
+def get_history_table(con, player_id, graph_width=100):
+    data = con.execute("""
+        SELECT p1.name, p2.name, m.result, m.date, h.eloAfter FROM history h
+            LEFT JOIN match m
+                ON m.id = h.match
+            LEFT JOIN player p1
+                ON m.playerA = p1.id
+            LEFT JOIN player p2
+                ON m.playerB = p2.id
+            WHERE h.player = ?
+            ORDER BY m.date
+        """, [player_id])
+
+    player_name = get_player_name_by_id(player_id, con)
+    sorted_data = []
+    for playerA_name, playerB_name, result, date, elo_after in data:
+        if playerA_name == player_name:
+            sorted_data.append((playerA_name, playerB_name, result, date, elo_after))
+        else:
+            result = INVERSE_RESULT_DICT[result]
+            sorted_data.append((playerB_name, playerA_name, result, date, elo_after))
+    data = sorted_data
+
+    all_elos = [row[4] for row in data]
+    max_elo = max(all_elos)
+    graph_increment = max_elo / graph_width
+
+    graphed_data = []
+    for playerA_name, playerB_name, result, date, elo_after in data:
+        bar_string = get_ascii_bar(elo_after, graph_increment)
+        graphed_data.append((playerA_name, playerB_name, result, date, elo_after, bar_string))
+
+    return tabulate(graphed_data, headers=('player', 'player', 'result', 'date', 'elo', ''), floatfmt='.0f')
+
+
+def get_ascii_bar(count, increment):
+    # https://alexwlchan.net/2018/05/ascii-bar-charts/
+
+    bar_chunks, remainder = divmod(int(count * 8 / increment), 8)
+
+    bar = '█' * bar_chunks
+    if remainder > 0:
+        bar += chr(ord('█') + (8 - remainder))
+    bar = bar or '▏'
+
+    return bar

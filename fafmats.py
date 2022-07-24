@@ -11,7 +11,7 @@ from constants import LOG_PATH, DATABASE_PATH, \
 from utils.db_init import init_db
 from utils.db_utils import add_player, add_match, update_elo, \
     get_player_id_by_name, get_player_elo, \
-    get_players_table, get_matches_table
+    get_players_table, get_matches_table, get_history_table
 from utils.elo import get_elo_difference
 
 
@@ -26,6 +26,7 @@ HELP_MESSAGE = """
  P [<METHOD>]                   list players by method. a='alphabetical', e='elo', d='date'. Uppercase inverts.
  m <NAME> , <NAME> = <RESULT>   add 1v1 match with result (2:0, 2:1, 1:2, 0:2, draw, forfeit)
  M [<NAME>]                     list matches, optionally filtered for player
+ H <NAME>                       show elo history of player
 """
 
 coloredlogs.DEFAULT_FIELD_STYLES['filename'] = {'color': 'magenta'}
@@ -155,6 +156,14 @@ while True:
                     continue
             matches_table = get_matches_table(con, player_id)
             log.info('\n' + matches_table)
+
+        elif flag == 'H':
+            player_id = get_player_id_by_name(input_string, con)
+            if player_id is None:
+                log.error('Did not find that person!')
+                continue
+            history_table = get_history_table(con, player_id)
+            log.info('\n' + history_table)
 
         else:
             log.error('Not a flag: "{}"'.format(flag))
