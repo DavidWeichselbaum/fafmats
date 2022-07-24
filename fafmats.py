@@ -2,35 +2,18 @@ import os
 import logging
 import logging.config
 from traceback import format_exc
-from datetime import datetime
 
 import coloredlogs
 import sqlite3 as sl
-from tabulate import tabulate
 
+from constants import LOG_PATH, DATABASE_PATH, \
+    RESULT_SCORE_DICT, WRONG_ORDER_RESULTS, INVERSE_RESULT_DICT
+from utils.db_init import init_db
+from utils.db_utils import add_player, add_match, update_elo, \
+    get_player_id_by_name, get_player_elo, \
+    get_players_table, get_matches_table
+from utils.elo import get_elo_difference
 
-LOG_PATH = 'log'
-DATABASE_PATH = 'data/data.db'
-
-STARGING_ELO = 1000
-EXPECTED_TENFOLD_ADVANTAGE = 400  # at 400 elo difference, the stronger opponent should score 10 times higher on average
-K_FACTOR = 32
-
-RESULT_SCORE_DICT = {
-    '2:0': 1,
-    '2:1': 1,
-    '1:2': 0,
-    '0:2': 0,
-    'draw': 0.5,
-    'forfeit': 0.5}
-WRONG_ORDER_RESULTS = ('0:2', '1:2')
-INVERSE_RESULT_DICT = {
-    '2:0': '0:2',
-    '2:1': '1:2',
-    '1:2': '2:1',
-    '0:2': '2:0',
-    'draw': 'draw',
-    'forfeit': 'forfeit'}
 
 YES_STRINGS = ['y', 'Y', 'yes', 'Yes']
 NO_STRINGS = ['n', 'N', 'no', 'No']
@@ -45,131 +28,6 @@ HELP_MESSAGE = """
  M [<NAME>]                     list matches, optionally filtered for player
 """
 
-
-def add_player(name, con):
-    sql = 'INSERT INTO player (name, elo, joiningDate) values(?, ?, ?)'
-    data = (name, STARGING_ELO, datetime.now())
-    try:
-        con.execute(sql, data)
-    except sl.IntegrityError:
-        log.error('Name already exists!')
-
-
-def add_match(playerA_id, playerB_id, result, con):
-    sql = 'INSERT INTO match (playerA, playerB, result, date) values(?, ?, ?, ?)'
-    data = (playerA_id, playerB_id, result, datetime.now())
-
-    cursor = con.cursor()
-    con.execute(sql, data)
-    match_id = cursor.lastrowid
-    return match_id
-
-
-def update_elo(player_id, elo_difference, match_id, con):
-    elo_before = get_player_elo(player_id, con)
-    elo_after = elo_before + elo_difference
-
-    sql = 'INSERT INTO history (player, match, eloBefore, eloAfter) values(?, ?, ?, ?)'
-    data = (player_id, match_id, elo_before, elo_after)
-    con.execute(sql, data)
-
-    sql = 'UPDATE player SET elo = ? WHERE id = ?'
-    data = (elo_after, player_id)
-    con.execute(sql, data)
-
-
-def get_player_id_by_name(name, con):
-    sql = 'SELECT id FROM player WHERE name = ?'
-    data = [name]
-    result = con.execute(sql, data)
-    players = result.fetchall()
-    if len(players) != 1:
-        return None
-    return players[0][0]
-
-
-def get_player_name_by_id(id_, con):
-    sql = 'SELECT name FROM player WHERE id = ?'
-    data = [id_]
-    result = con.execute(sql, data)
-    players = result.fetchall()
-    if len(players) != 1:
-        return None
-    return players[0][0]
-
-
-def get_player_elo(id_, con):
-    sql = 'SELECT elo FROM player WHERE id = ?'
-    data = [id_]
-    result = con.execute(sql, data)
-    elo = result.fetchall()
-    return elo[0][0]
-
-
-def get_expected_elo_score(playerA_elo, playerB_elo):
-    elo_difference = playerB_elo - playerA_elo
-    return 1 / (1 + 10 ** (elo_difference / EXPECTED_TENFOLD_ADVANTAGE))
-
-
-def get_elo_difference(playerA_elo, playerB_elo, result):
-    playerA_score = RESULT_SCORE_DICT[result]
-    playerA_expected_score = get_expected_elo_score(playerA_elo, playerB_elo)
-    playerA_score_offset = playerA_score - playerA_expected_score
-    elo_difference = K_FACTOR * playerA_score_offset
-    return elo_difference
-
-
-def get_players_table(con, method):
-    if method == 'd':
-        sort_string = 'ORDER BY joiningDate ASC'
-    elif method == 'D':
-        sort_string = 'ORDER BY joiningDate DESC'
-    elif method == 'a':
-        sort_string = 'ORDER BY name ASC'
-    elif method == 'A':
-        sort_string = 'ORDER BY name DESC'
-    elif method == 'e':
-        sort_string = 'ORDER BY elo ASC'
-    elif method == 'E':
-        sort_string = 'ORDER BY elo DESC'
-
-    data = con.execute("SELECT name, elo, id, joiningDate FROM player {}".format(sort_string))
-    return tabulate(data, headers=('name', 'elo', 'id', 'joined'), floatfmt=".0f")
-
-
-def get_matches_table(con, player_id=None):
-    if player_id is not None:
-        data = con.execute("""
-            SELECT p1.name, p2.name, m.result, m.date FROM match m
-                LEFT JOIN player p1
-                    ON m.playerA = p1.id
-                LEFT JOIN player p2
-                    ON m.playerB = p2.id
-                WHERE m.playerA = ? OR m.playerB = ?
-                ORDER BY m.date
-            """, [player_id, player_id])
-
-        player_name = get_player_name_by_id(player_id, con)
-        sorted_data = []
-        for playerA_name, playerB_name, result, date in data:
-            if playerA_name == player_name:
-                sorted_data.append((playerA_name, playerB_name, result, date))
-            else:
-                result = INVERSE_RESULT_DICT[result]
-                sorted_data.append((playerB_name, playerA_name, result, date))
-        data = sorted_data
-    else:
-        data = con.execute("""
-            SELECT p1.name, p2.name, m.result, m.date FROM match m
-                LEFT JOIN player p1
-                    ON m.playerA = p1.id
-                LEFT JOIN player p2
-                    ON m.playerB = p2.id
-                ORDER BY m.date
-            """)
-    return tabulate(data, headers=('player', 'player', 'result', 'date'))
-
-
 coloredlogs.DEFAULT_FIELD_STYLES['filename'] = {'color': 'magenta'}
 logging.config.fileConfig(
     'logging.conf',
@@ -180,39 +38,7 @@ log = logging.getLogger('fafmats')
 
 if not os.path.isfile(DATABASE_PATH):
     log.info('Add new database at {}'.format(DATABASE_PATH))
-    con = sl.connect(DATABASE_PATH)
-    con.execute("PRAGMA foreign_keys = 1")
-    con.execute("""
-            CREATE TABLE player (
-                id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL UNIQUE,
-                elo REAL NOT NULL,
-                joiningDate timestamp
-            );
-        """)
-    con.execute("""
-            CREATE TABLE match (
-                id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                playerA INTEGER,
-                playerB INTEGER,
-                result STRING,
-                date timestamp,
-                FOREIGN KEY(playerA) REFERENCES player(id),
-                FOREIGN KEY(playerB) REFERENCES player(id)
-            );
-        """)
-    con.execute("""
-            CREATE TABLE history (
-                id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                player INTEGER,
-                match INTEGER,
-                eloBefore REAL NOT NULL,
-                eloAfter REAL NOT NULL,
-                FOREIGN KEY(player) REFERENCES player(id),
-                FOREIGN KEY(match) REFERENCES match(id)
-            );
-        """)
-    con.commit()
+    con = init_db()
 else:
     log.info('Using database at {}'.format(DATABASE_PATH))
     con = sl.connect(DATABASE_PATH)
