@@ -40,5 +40,35 @@ def init_db():
             );
         """)
 
+    con.execute("""
+            CREATE TABLE draft (
+                id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL UNIQUE,
+                active INTEGER,
+                date timestamp,
+            );
+        """)
+
+    con.execute("""
+            CREATE TABLE draftPlayer (
+                id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                player INTEGER,
+                draft INTEGER,
+                rank INTEGER,
+                FOREIGN KEY(player) REFERENCES player(id),
+                FOREIGN KEY(draft) REFERENCES draft(id)
+            );
+        """)
+
+    con.execute("""
+            CREATE TABLE draftMatch (
+                id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                match INTEGER,
+                draft INTEGER,
+                FOREIGN KEY(match) REFERENCES match(id),
+                FOREIGN KEY(draft) REFERENCES draft(id)
+            );
+        """)
+
     con.commit()
     return con

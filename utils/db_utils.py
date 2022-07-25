@@ -5,6 +5,7 @@ from datetime import datetime
 from tabulate import tabulate
 
 from constants import STARGING_ELO, INVERSE_RESULT_DICT
+from utils.utils import get_ascii_bar
 
 
 log = logging.getLogger('db_utils')
@@ -156,14 +157,14 @@ def get_history_table(con, player_id, graph_width=100):
     return tabulate(graphed_data, headers=('player', 'player', 'result', 'date', 'elo', ''), floatfmt='.0f')
 
 
-def get_ascii_bar(count, increment):
-    # https://alexwlchan.net/2018/05/ascii-bar-charts/
+def add_draft(name, con):
+    sql = 'INSERT INTO draft (name, active, date) values(?, ?, ?)'
+    data = (name, True, datetime.now())
 
-    bar_chunks, remainder = divmod(int(count * 8 / increment), 8)
-
-    bar = '█' * bar_chunks
-    if remainder > 0:
-        bar += chr(ord('█') + (8 - remainder))
-    bar = bar or '▏'
-
-    return bar
+    cursor = con.cursor()
+    try:
+        cursor.execute(sql, data)
+        draft_id = cursor.lastrowid
+        return draft_id
+    except sl.IntegrityError:
+        log.error('Name already exists!')
