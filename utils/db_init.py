@@ -45,7 +45,7 @@ def init_db():
                 id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL UNIQUE,
                 active INTEGER,
-                date timestamp,
+                date timestamp
             );
         """)
 
