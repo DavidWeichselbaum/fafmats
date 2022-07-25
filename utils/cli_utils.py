@@ -5,7 +5,7 @@ from constants import RESULT_SCORE_DICT, WRONG_ORDER_RESULTS, INVERSE_RESULT_DIC
 from utils.db_utils import add_player, add_match, update_elo, \
     get_player_id_by_name, get_player_elo, \
     get_players_table, get_matches_table, get_history_table, \
-    add_draft
+    add_draft, get_draft_id_by_name, add_player_to_draft, get_drafts_table
 from utils.elo import get_elo_difference
 
 
@@ -21,6 +21,7 @@ def handle_add_player(input_string, con):
         confirmation_string = input('    Add player "{}"? [y/n] > '.format(input_string))
         if confirmation_string in YES_STRINGS:
             add_player(input_string, con)
+            log.info('Added player "{}"'.format(input_string))
             return
         elif confirmation_string in NO_STRINGS:
             return
@@ -83,7 +84,7 @@ def handle_add_match(input_string, con):
     # ask for permission and save
     playerA_elo_sign = '+' if elo_difference >= 0 else '-'
     playerB_elo_sign = '+' if elo_difference <= 0 else '-'
-    log.info('Adding match:\n{}: {} {} {} = {} elo\n{}: {} {} {} = {} elo".'.format(
+    log.info('Results:\n{}: {:.0f} {} {:.0f} = {:.0f} elo\n{}: {:.0f} {} {:.0f} = {:.0f} elo".'.format(
         playerA_name, playerA_elo, playerA_elo_sign, abs(elo_difference), playerA_elo_new,
         playerB_name, playerB_elo, playerB_elo_sign, abs(elo_difference), playerB_elo_new))
     while True:
@@ -123,21 +124,69 @@ def handle_show_history(input_string, con):
 
 
 def handle_draft(input_string, con):
-    input_strings = input_string.split(',')
-
-    if len(input_strings) == 1:
-        handle_add_draft(input_string, con)
+    if not input_string:
+        handle_add_draft(con)
 
 
-def handle_add_draft(input_string, con):
+def handle_add_draft(con):
+    log.info('Add Players, stop with empty input.')
+    player_ids, player_names = [], []
     while True:
-        confirmation_string = input('    Add draft "{}"? [y/n] > '.format(input_string))
+        player_name = input('    player #{} > '.format(len(player_ids) + 1))
+        if player_name == '':
+            break
+
+        player_id = get_player_id_by_name(player_name, con)
+        if player_id is None:
+            log.warning('Name not found.')
+            continue
+        elif player_id in player_ids:
+            log.warning('No, you can\'t play twice for double elo.')
+            continue
+        else:
+            player_ids.append(player_id)
+            player_names.append(player_name)
+
+    if len(player_ids) < 2:
+        log.error('Can\'t have a draft alone, can you?')
+        return
+
+    while True:
+        draft_name = input('Enter draft name > ')
+        draft_id = get_draft_id_by_name(draft_name, con)
+        if draft_id is not None:
+            log.error('Name already exists!')
+            continue
+        else:
+            break
+
+    while True:
+        confirmation_string = input('Add draft "{}"? [y/n] > '.format(draft_name))
         if confirmation_string in YES_STRINGS:
-            draft_id = get_draft_id_by_name(input_string)
-            if draft_id is not None:
-                log.error('Name already exists!')
-                return
-            draft_id = add_draft(input_string, con)
-            return
+            break
         elif confirmation_string in NO_STRINGS:
             return
+
+    draft_id = add_draft(draft_name, con)
+    for player_id in player_ids:
+        add_player_to_draft(player_id, draft_id, con)
+
+    log.info('Added draft "{}" with players: {}'.format(draft_name, ', '.join(player_names)))
+
+
+def handle_show_drafts(input_string, con):
+    draft_id, player_id = None, None
+
+    if input_string:
+        draft_id = get_draft_id_by_name(input_string, con)
+        drafts_table = get_drafts_table(con, draft_id=draft_id)
+    elif input_string and not draft_id:
+        player_id = get_player_id_by_name(input_string, con)
+        drafts_table = get_drafts_table(con, player_id=player_id)
+    elif input_string and not draft_id and not player_id:
+        log.error('"{}" is neither a draft nor a player!')
+        return
+    else:
+        drafts_table = get_drafts_table(con)
+
+    log.info('\n' + drafts_table)

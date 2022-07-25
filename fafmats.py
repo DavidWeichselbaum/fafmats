@@ -9,7 +9,7 @@ import sqlite3 as sl
 from constants import LOG_PATH, DATABASE_PATH
 from utils.db_init import init_db
 from utils.cli_utils import handle_add_player, handle_add_match, \
-    handle_show_players, handle_show_matches, handle_show_history, \
+    handle_show_players, handle_show_matches, handle_show_history, handle_show_drafts, \
     handle_draft
 
 
@@ -37,7 +37,7 @@ HELP_MESSAGE = """
  m <NAME> , <NAME> = <RESULT>   add 1v1 match with result (2:0, 2:1, 1:2, 0:2, draw, forfeit)
  M [<NAME>]                     list matches, optionally filtered for player
  H <NAME>                       show elo history of player
- d <NAME> [, <ACTION>]          starts draft or runs action on draft.
+ d <ACTION>]                    start draft or runs action on draft.
  D                              lists drafts
 """
 
@@ -46,6 +46,8 @@ input_count = 0
 while True:
     try:
         input_ = input('[{:03d}]> '.format(input_count))
+        if not input_:
+            continue
         flag = input_[0]
         input_string = input_[1:]
         input_string = input_string.strip()
@@ -67,11 +69,13 @@ while True:
             handle_show_history(input_string, con)
         elif flag == 'd':
             handle_draft(input_string, con)
+        elif flag == 'D':
+            handle_show_drafts(input_string, con)
         else:
             log.error('Not a flag: "{}"'.format(flag))
 
-    except KeyboardInterrupt:
-        log.warning('User "q" to quit.')
+    except (KeyboardInterrupt, EOFError):
+        break
     except BaseException:
         log.error(format_exc())
     else:

@@ -168,3 +168,42 @@ def add_draft(name, con):
         return draft_id
     except sl.IntegrityError:
         log.error('Name already exists!')
+
+
+def get_draft_id_by_name(name, con):
+    sql = 'SELECT id FROM draft WHERE name = ?'
+    data = [name]
+    result = con.execute(sql, data)
+    drafts = result.fetchall()
+    if len(drafts) != 1:
+        return None
+    return drafts[0][0]
+
+
+def get_player_name_by_id(id_, con):
+    sql = 'SELECT name FROM draft WHERE id = ?'
+    data = [id_]
+    result = con.execute(sql, data)
+    drafts = result.fetchall()
+    if len(drafts) != 1:
+        return None
+    return drafts[0][0]
+
+
+def add_player_to_draft(player_id, draft_id, con):
+    sql = 'INSERT INTO draftPlayer (player, draft, rank) values(?, ?, ?)'
+    data = (player_id, draft_id, 0)
+    try:
+        con.execute(sql, data)
+    except sl.IntegrityError:
+        log.error('Player allready part of that draft!')
+
+
+def get_drafts_table(con, draft_id=None, player_id=None):
+    sql = 'SELECT name, active, date FROM draft'
+    data = con.execute(sql)
+
+    formatted_data = []
+    for name, active, date in data:
+        formatted_data.append((name, bool(active), date))
+    return tabulate(formatted_data, headers=('name', 'active', 'date'))
