@@ -45,6 +45,7 @@ def init_db():
                 id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL UNIQUE,
                 active INTEGER,
+                round INTEGER,
                 date timestamp
             );
         """)
@@ -65,6 +66,7 @@ def init_db():
                 id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                 match INTEGER,
                 draft INTEGER,
+                round INTEGER,
                 FOREIGN KEY(match) REFERENCES match(id),
                 FOREIGN KEY(draft) REFERENCES draft(id)
             );

@@ -33,12 +33,21 @@ HELP_MESSAGE = """
  h                              get help
  q                              quit
  p <NAME>                       add player
- P [<METHOD>]                   list players by method. a='alphabetical', e='elo', d='date'. Uppercase inverts.
- m <NAME> , <NAME> = <RESULT>   add 1v1 match with result (2:0, 2:1, 1:2, 0:2, draw, forfeit)
+ P [<METHOD>]                   list players by method.
+                                methods:
+                                  'a/A': alphabetical
+                                  'e/E': elo
+                                  'd/D': date
+ m <NAME> , <NAME> = <RESULT>   add 1v1 match between named players.
+                                possible results: '2:0', '2:1', '1:2', '0:2', 'draw', 'forfeit'
  M [<NAME>]                     list matches, optionally filtered for player
  H <NAME>                       show elo history of player
- d <ACTION>]                    start draft or runs action on draft.
- D                              lists drafts
+ d <NAME> [<ACTION>]            start named draft(s) or runs action on draft.
+                                actions:
+                                  'p': generate pairings
+                                  'r': remove player
+                                  'm': add match
+ D [<NAME>]                     lists drafts and draft details
 """
 
 

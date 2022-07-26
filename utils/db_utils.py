@@ -180,7 +180,7 @@ def get_draft_id_by_name(name, con):
     return drafts[0][0]
 
 
-def get_player_name_by_id(id_, con):
+def get_draft_name_by_id(id_, con):
     sql = 'SELECT name FROM draft WHERE id = ?'
     data = [id_]
     result = con.execute(sql, data)

@@ -1,3 +1,4 @@
+import re
 import logging
 
 from constants import RESULT_SCORE_DICT, WRONG_ORDER_RESULTS, INVERSE_RESULT_DICT, \
@@ -124,11 +125,23 @@ def handle_show_history(input_string, con):
 
 
 def handle_draft(input_string, con):
-    if not input_string:
-        handle_add_draft(con)
+    method = re.findall(' ([A-z])$', input_string)
+    if not method:
+        handle_add_draft(input_string, con)
+
+    draft_name = input_string[:-2]
+    draft_id = get_draft_id_by_name(draft_name, con)
+    if method == 'p':
+        handle_draft_pairings()
 
 
-def handle_add_draft(con):
+def handle_add_draft(draft_name, con):
+    draft_id = get_draft_id_by_name(draft_name, con)
+    if draft_id is not None:
+        log.error('Name already exists!')
+        return
+
+    # add players
     log.info('Add Players, stop with empty input.')
     player_ids, player_names = [], []
     while True:
@@ -148,30 +161,76 @@ def handle_add_draft(con):
             player_names.append(player_name)
 
     if len(player_ids) < 2:
-        log.error('Can\'t have a draft alone, can you?')
+        log.error('Can\'t have a draft alone now, can you?')
         return
 
+    # separte drafts if wanted
+    log.info('Start multi-table draft? Divide {} players into tables or leave emtpy.'.format(len(player_ids)))
+    draft_names, draft_player_numbers, draft_player_id_lists, draft_player_names_lists = [], [], [], []
+    players_left = len(player_names)
     while True:
-        draft_name = input('Enter draft name > ')
-        draft_id = get_draft_id_by_name(draft_name, con)
-        if draft_id is not None:
-            log.error('Name already exists!')
-            continue
-        else:
+        player_number_string = input('    number players in draft "{}-{}" ({} left)> '.format(
+            draft_name, len(draft_names) + 1, players_left))
+
+        if player_number_string == '':
+            draft_names.append(draft_name)
+            draft_player_numbers.append(len(player_ids))
             break
 
-    while True:
-        confirmation_string = input('Add draft "{}"? [y/n] > '.format(draft_name))
-        if confirmation_string in YES_STRINGS:
+        try:
+            player_number = int(player_number_string)
+        except ValueError:
+            log.warning('Do you know what numbers are?')
+            continue
+
+        draft_names.append('{}-{}'.format(draft_name, len(draft_names) + 1))
+        draft_player_numbers.append(player_number)
+
+        players_left -= player_number
+        if players_left == 0:
             break
-        elif confirmation_string in NO_STRINGS:
+        elif players_left < 2:
+            log.warning('I\'m sure we can do better in dividing them up, hm?')
             return
 
-    draft_id = add_draft(draft_name, con)
-    for player_id in player_ids:
-        add_player_to_draft(player_id, draft_id, con)
+    # automatically pair if wanted
+    if len(draft_names) > 1:
+        autopair = True
+        while True:
+            confirmation_string = input('Autopair? [Y/n] > ')
+            if confirmation_string in YES_STRINGS + ['']:
+                autopair = True
+                break
+            elif confirmation_string in NO_STRINGS:
+                autopair = False
+                break
 
-    log.info('Added draft "{}" with players: {}'.format(draft_name, ', '.join(player_names)))
+        if autopair:
+            pass
+        else:
+            pass
+
+    else:
+        draft_player_id_lists.append(player_ids)
+        draft_player_names_lists.append(player_names)
+
+    # start draft(s)
+    for draft_name, draft_player_names, draft_player_ids in \
+            zip(draft_names, draft_player_names_lists, draft_player_id_lists):
+
+        while True:
+            confirmation_string = input('Add draft "{}" with players {}? [y/n] > '.format(
+                draft_name, ', '.join(draft_player_names)))
+            if confirmation_string in YES_STRINGS:
+                break
+            elif confirmation_string in NO_STRINGS:
+                return
+
+        draft_id = add_draft(draft_name, con)
+        for player_id in player_ids:
+            add_player_to_draft(player_id, draft_id, con)
+
+        log.info('Added draft "{}" with players: {}'.format(draft_name, ', '.join(player_names)))
 
 
 def handle_show_drafts(input_string, con):
