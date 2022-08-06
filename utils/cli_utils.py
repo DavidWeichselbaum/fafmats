@@ -7,21 +7,24 @@ from utils.db_utils import add_player, add_match, update_elo, \
     get_player_id_by_name, get_player_elo, \
     get_players_table, get_matches_table, get_history_table, \
     add_draft, get_draft_id_by_name, add_player_to_draft, get_drafts_table
-from utils.elo import get_elo_difference
+from utils.elo import get_elo_difference, get_draft_autopairing
 
 
 log = logging.getLogger('cli_utils')
 
 
 def handle_add_player(input_string, con):
-    if not input_string:
-        log.error('Name needed!')
+    names = input_string.split()
+    if len(names) != 2:
+        log.error('First name and last name needed!')
         return
+
+    first_name, last_name = names[0], names[1]
 
     while True:
         confirmation_string = input('    Add player "{}"? [y/n] > '.format(input_string))
         if confirmation_string in YES_STRINGS:
-            add_player(input_string, con)
+            add_player(first_name, last_name, con)
             log.info('Added player "{}"'.format(input_string))
             return
         elif confirmation_string in NO_STRINGS:
@@ -129,10 +132,10 @@ def handle_draft(input_string, con):
     if not method:
         handle_add_draft(input_string, con)
 
-    draft_name = input_string[:-2]
-    draft_id = get_draft_id_by_name(draft_name, con)
-    if method == 'p':
-        handle_draft_pairings()
+    # draft_name = input_string[:-2]
+    # draft_id = get_draft_id_by_name(draft_name, con)
+    # if method == 'p':
+    #     handle_draft_pairings()
 
 
 def handle_add_draft(draft_name, con):
@@ -206,7 +209,7 @@ def handle_add_draft(draft_name, con):
                 break
 
         if autopair:
-            pass
+            draft_player_id_lists = get_draft_autopairing(draft_player_numbers, player_ids, con)
         else:
             pass
 

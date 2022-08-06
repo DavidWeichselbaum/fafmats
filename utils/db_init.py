@@ -11,13 +11,14 @@ def init_db():
             CREATE TABLE player (
                 id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL UNIQUE,
+                familyName TEXT NOT NULL,
                 elo REAL NOT NULL,
                 joiningDate timestamp
             );
         """)
 
     con.execute("""
-            CREATE TABLE match (
+            CREATE TABLE matchResult (
                 id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                 playerA INTEGER,
                 playerB INTEGER,

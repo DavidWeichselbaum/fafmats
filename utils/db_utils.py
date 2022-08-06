@@ -11,9 +11,9 @@ from utils.utils import get_ascii_bar
 log = logging.getLogger('db_utils')
 
 
-def add_player(name, con):
-    sql = 'INSERT INTO player (name, elo, joiningDate) values(?, ?, ?)'
-    data = (name, STARGING_ELO, datetime.now())
+def add_player(first_name, last_name, con):
+    sql = 'INSERT INTO player (name, familyName, elo, joiningDate) values(?, ?, ?, ?)'
+    data = (first_name, last_name, STARGING_ELO, datetime.now())
     try:
         con.execute(sql, data)
     except sl.IntegrityError:
@@ -21,7 +21,7 @@ def add_player(name, con):
 
 
 def add_match(playerA_id, playerB_id, result, con):
-    sql = 'INSERT INTO match (playerA, playerB, result, date) values(?, ?, ?, ?)'
+    sql = 'INSERT INTO matchResult (playerA, playerB, result, date) values(?, ?, ?, ?)'
     data = (playerA_id, playerB_id, result, datetime.now())
 
     cursor = con.cursor()
@@ -92,7 +92,7 @@ def get_players_table(con, method):
 def get_matches_table(con, player_id=None):
     if player_id is not None:
         data = con.execute("""
-            SELECT p1.name, p2.name, m.result, m.date FROM match m
+            SELECT p1.name, p2.name, m.result, m.date FROM matchResult m
                 LEFT JOIN player p1
                     ON m.playerA = p1.id
                 LEFT JOIN player p2
@@ -112,7 +112,7 @@ def get_matches_table(con, player_id=None):
         data = sorted_data
     else:
         data = con.execute("""
-            SELECT p1.name, p2.name, m.result, m.date FROM match m
+            SELECT p1.name, p2.name, m.result, m.date FROM matchResult m
                 LEFT JOIN player p1
                     ON m.playerA = p1.id
                 LEFT JOIN player p2
@@ -125,7 +125,7 @@ def get_matches_table(con, player_id=None):
 def get_history_table(con, player_id, graph_width=100):
     data = con.execute("""
         SELECT p1.name, p2.name, m.result, m.date, h.eloAfter FROM history h
-            LEFT JOIN match m
+            LEFT JOIN matchResult m
                 ON m.id = h.match
             LEFT JOIN player p1
                 ON m.playerA = p1.id

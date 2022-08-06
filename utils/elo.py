@@ -13,3 +13,6 @@ def get_elo_difference(playerA_elo, playerB_elo, result):
     playerA_score_offset = playerA_score - playerA_expected_score
     elo_difference = K_FACTOR * playerA_score_offset
     return elo_difference
+
+def get_draft_autopairing():
+    pass

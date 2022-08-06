@@ -32,7 +32,7 @@ else:
 HELP_MESSAGE = """
  h                              get help
  q                              quit
- p <NAME>                       add player
+ p <FIRST_NAME> <LAST_NAME>     add player
  P [<METHOD>]                   list players by method.
                                 methods:
                                   'a/A': alphabetical
