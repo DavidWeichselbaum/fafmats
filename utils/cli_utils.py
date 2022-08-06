@@ -9,8 +9,9 @@ from utils.db_utils import add_player, add_match, update_elo, \
     get_player_id_by_name, get_player_elo, \
     get_players_table, get_matches_table, get_history_table, \
     add_draft, get_draft_id_by_name, add_player_to_draft, get_drafts_table, \
-    get_all_player_ids, get_fafmats_scores, get_player_name_by_id
-from utils.elo import get_elo_difference, get_draft_autopairing
+    get_all_player_ids, get_fafmats_scores, get_player_name_by_id, get_n_encounters, \
+    get_elo_difference
+from utils.elo import get_elo_difference_from_result, get_draft_autopairing
 
 
 log = logging.getLogger('cli_utils')
@@ -83,7 +84,7 @@ def handle_add_match(input_string, con):
     # get elo difference
     playerA_elo = get_player_elo(playerA_id, con)
     playerB_elo = get_player_elo(playerB_id, con)
-    elo_difference = get_elo_difference(playerA_elo, playerB_elo, result_string)
+    elo_difference = get_elo_difference_from_result(playerA_elo, playerB_elo, result_string)
     playerA_elo_new = playerA_elo + elo_difference
     playerB_elo_new = playerB_elo - elo_difference
 
@@ -277,10 +278,16 @@ def handle_show_score(input_string, con):
         opponent_ids = get_all_player_ids(con)
         opponent_ids.remove(player_id)
 
-    player_id_score_tuples = get_fafmats_scores(player_id, opponent_ids, con)
-    player_id_score_tuples.sort(key=lambda x: x[1])
+    opponent_id_score_tuples = get_fafmats_scores(player_id, opponent_ids, con)
+    opponent_id_score_tuples.sort(key=lambda x: x[1])
 
-    player_names_score_tuples = [(get_player_name_by_id(player_id, con), score * 100)
-                                 for player_id, score in player_id_score_tuples]
-    table = tabulate(player_names_score_tuples, headers=('player', 'score'), floatfmt='.0f')
-    log.info(table)
+    table_data = []
+    for opponent_id, score in opponent_id_score_tuples:
+        opponent_name = get_player_name_by_id(opponent_id, con)
+        score_percent = score * 100
+        elo_difference = get_elo_difference(player_id, opponent_id, con)
+        n_encounters = get_n_encounters(player_id, opponent_id, con)
+        table_data.append((opponent_name, score_percent, elo_difference, n_encounters))
+
+    table = tabulate(table_data, headers=('opponent', 'score', 'elo difference', 'encounters'), floatfmt='.0f')
+    log.info('\n' + table)
