@@ -10,7 +10,7 @@ from constants import LOG_PATH, DATABASE_PATH
 from utils.db_utils import init_db
 from utils.cli_utils import handle_add_player, handle_add_match, \
     handle_show_players, handle_show_matches, handle_show_history, handle_show_drafts, \
-    handle_draft
+    handle_draft, handle_show_score
 
 
 coloredlogs.DEFAULT_FIELD_STYLES['filename'] = {'color': 'magenta'}
@@ -38,7 +38,7 @@ HELP_MESSAGE = """
                                   'a/A': alphabetical
                                   'e/E': elo
                                   'd/D': date
- m <NAME> , <NAME> = <RESULT>   add 1v1 match between named players.
+ m <NAME> <NAME> <RESULT>       add 1v1 match between named players.
                                 possible results: '2:0', '2:1', '1:2', '0:2', 'draw', 'forfeit'
  M [<NAME>]                     list matches, optionally filtered for player
  H <NAME>                       show elo history of player
@@ -48,6 +48,7 @@ HELP_MESSAGE = """
                                   'r': remove player
                                   'm': add match
  D [<NAME>]                     lists drafts and draft details
+ F <NAME> [<NAME> ...]          get fafmats score between player and all player or list of player
 """
 
 
@@ -80,6 +81,8 @@ while True:
             handle_draft(input_string, con)
         elif flag == 'D':
             handle_show_drafts(input_string, con)
+        elif flag == 'F':
+            handle_show_score(input_string, con)
         else:
             log.error('Not a flag: "{}"'.format(flag))
 

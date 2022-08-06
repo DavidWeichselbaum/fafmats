@@ -1,12 +1,15 @@
 import re
 import logging
 
+from tabulate import tabulate
+
 from constants import RESULT_SCORE_DICT, WRONG_ORDER_RESULTS, INVERSE_RESULT_DICT, \
     YES_STRINGS, NO_STRINGS, SORT_METHOD_STRINGS
 from utils.db_utils import add_player, add_match, update_elo, \
     get_player_id_by_name, get_player_elo, \
     get_players_table, get_matches_table, get_history_table, \
-    add_draft, get_draft_id_by_name, add_player_to_draft, get_drafts_table
+    add_draft, get_draft_id_by_name, add_player_to_draft, get_drafts_table, \
+    get_all_player_ids, get_fafmats_scores, get_player_name_by_id
 from utils.elo import get_elo_difference, get_draft_autopairing
 
 
@@ -20,6 +23,9 @@ def handle_add_player(input_string, con):
         return
 
     first_name, last_name = names[0], names[1]
+    if ' ' in first_name or ' ' in last_name:
+        log.error('No whitespaces allowed in names!')
+        return
 
     while True:
         confirmation_string = input('    Add player "{}"? [y/n] > '.format(input_string))
@@ -44,22 +50,18 @@ def handle_show_players(input_string, con):
 
 def handle_add_match(input_string, con):
     # make sure everything is a-okay
-    input_strings = input_string.split('=')
-    if len(input_strings) != 2:
-        log.error('Need result!')
+    input_strings = input_string.split()
+    if len(input_strings) != 3:
+        log.error('Need 2 names and result!')
         return
 
-    players_string = input_strings[0].strip()
-    result_string = input_strings[1].strip()
+    playerA_name = input_strings[0]
+    playerB_name = input_strings[1]
+    result_string = input_strings[2]
     if result_string not in RESULT_SCORE_DICT:
         log.error('Result must be one of {}'.format(RESULT_SCORE_DICT.keys()))
         return
 
-    player_strings = players_string.split(',')
-    if len(player_strings) != 2:
-        log.error('Need 2 players!')
-        return
-    playerA_name, playerB_name = player_strings[0].strip(), player_strings[1].strip()
     playerA_id = get_player_id_by_name(playerA_name, con)
     playerB_id = get_player_id_by_name(playerB_name, con)
     if playerA_id is None:
@@ -252,3 +254,33 @@ def handle_show_drafts(input_string, con):
         drafts_table = get_drafts_table(con)
 
     log.info('\n' + drafts_table)
+
+
+def handle_show_score(input_string, con):
+    player_names = input_string.split()
+    if not player_names:
+        log.error('Need players!')
+        return
+
+    player_ids = []
+    for player_name in player_names:
+        player_id = get_player_id_by_name(player_name, con)
+        if player_id is None:
+            log.error('Player "{}" does not exist!'.format(player_name))
+            return
+        player_ids.append(player_id)
+
+    player_id = player_ids.pop(0)
+    opponent_ids = player_ids
+
+    if not opponent_ids:  # chose all players if no others given
+        opponent_ids = get_all_player_ids(con)
+        opponent_ids.remove(player_id)
+
+    player_id_score_tuples = get_fafmats_scores(player_id, opponent_ids, con)
+    player_id_score_tuples.sort(key=lambda x: x[1])
+
+    player_names_score_tuples = [(get_player_name_by_id(player_id, con), score * 100)
+                                 for player_id, score in player_id_score_tuples]
+    table = tabulate(player_names_score_tuples, headers=('player', 'score'), floatfmt='.0f')
+    log.info(table)
