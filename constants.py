@@ -1,5 +1,6 @@
 # paths
 LOG_PATH = 'log'
+SQLITE_SCRIPT_PATH = 'resources/fafmats.sql'
 DATABASE_PATH = 'data/data.db'
 
 # elo

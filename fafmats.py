@@ -7,7 +7,7 @@ import coloredlogs
 import sqlite3 as sl
 
 from constants import LOG_PATH, DATABASE_PATH
-from utils.db_init import init_db
+from utils.db_utils import init_db
 from utils.cli_utils import handle_add_player, handle_add_match, \
     handle_show_players, handle_show_matches, handle_show_history, handle_show_drafts, \
     handle_draft

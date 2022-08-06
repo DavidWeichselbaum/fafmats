@@ -4,11 +4,20 @@ from datetime import datetime
 
 from tabulate import tabulate
 
-from constants import STARGING_ELO, INVERSE_RESULT_DICT
+from constants import STARGING_ELO, INVERSE_RESULT_DICT, SQLITE_SCRIPT_PATH, DATABASE_PATH
 from utils.utils import get_ascii_bar
 
 
 log = logging.getLogger('db_utils')
+
+
+def init_db():
+    with open(SQLITE_SCRIPT_PATH) as sql_file:
+        sql_script = sql_file.read()
+    con = sl.connect(DATABASE_PATH)
+    cursor = con.cursor()
+    cursor.executescript(sql_script)
+    return con
 
 
 def add_player(first_name, last_name, con):
