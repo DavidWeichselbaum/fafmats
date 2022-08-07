@@ -217,14 +217,40 @@ def add_player_to_draft(player_id, draft_id, con):
         log.error('Player allready part of that draft!')
 
 
-def get_drafts_table(con, draft_id=None, player_id=None):
-    sql = 'SELECT name, active, date FROM draft'
-    data = con.execute(sql)
+def get_drafts_table(con, player_id=None, draft_id=None):
+    if player_id is None and draft_id is None:
+        sql = 'SELECT d.name, d.active, d.round, d.date FROM draft d'
+        data = con.execute(sql)
+    elif player_id is not None:
+        sql = """
+            SELECT d.name, d.active, d.round, d.date FROM draft d
+                LEFT JOIN draftPlayer p
+                    ON d.id = p.draft
+                WHERE p.player = ?
+                ORDER BY d.date
+            """
+        result = con.execute(sql, [player_id])
+        data = result.fetchall()
+    elif draft_id is not None:
+        sql = """
+            SELECT d.name, d.active, d.round, d.date FROM draft d
+                WHERE d.id = ?
+            """
+        result = con.execute(sql, [draft_id])
+        data = result.fetchall()
 
     formatted_data = []
-    for name, active, date in data:
-        formatted_data.append((name, bool(active), date))
-    return tabulate(formatted_data, headers=('name', 'active', 'date'))
+    for name, active, round_, date in data:
+        formatted_data.append((name, bool(active), round_, date))
+    return tabulate(formatted_data, headers=('name', 'active', 'round', 'date'))
+
+
+def get_draft_table(draft_id, con):
+    draft_table = get_drafts_table(con, draft_id=draft_id)
+    player_table = get_draft_player_table(draft_id, con)
+
+    return_string = '#### Draft:\n{}\n\n#### Players:\n{}'.format(draft_table, player_table)
+    return return_string
 
 
 def get_elo_difference(playerA_id, playerB_id, con):
@@ -284,3 +310,22 @@ def get_fafmats_scores(player_id, opponent_ids, con):
         opponent_scores.append(fafmats_score)
 
     return opponent_scores
+
+
+def get_draft_player_table(draft_id, con):
+    sql = """
+        SELECT p.name, dp.rank, dp.active FROM draftPlayer dp
+            LEFT JOIN draft d
+                ON dp.draft = d.id
+            LEFT JOIN player p
+                ON dp.player = p.id
+            WHERE d.id = ?
+            ORDER BY dp.rank
+        """
+    result = con.execute(sql, [draft_id])
+    data = result.fetchall()
+
+    formatted_data = []
+    for name, rank, active in data:
+        formatted_data.append((name, rank, bool(active)))
+    return tabulate(formatted_data, headers=('name', 'rank', 'active'))

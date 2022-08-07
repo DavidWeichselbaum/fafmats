@@ -5,9 +5,10 @@ from scipy.spatial.distance import squareform
 from fastcluster import linkage
 
 from utils.db_utils import get_fafmats_scores, get_player_name_by_id
+from constants import GENERATE_PLOTS
 
 
-def get_draft_autopairing(draft_player_numbers, player_ids, con, plot=True):
+def get_draft_autopairing(draft_player_numbers, player_ids, con):
     scores_list = []
     for i in range(len(player_ids)):
         player_id = player_ids[i]
@@ -16,19 +17,19 @@ def get_draft_autopairing(draft_player_numbers, player_ids, con, plot=True):
     scores = np.array(scores_list)
     np.fill_diagonal(scores, 1)  # sometimes scores to player itself might not be 1 due to diviion by zero checks
 
-    clusters = hierarchy.linkage(scores, method='ward')
     ordered_scores, result_order, result_linkage = compute_serial_matrix(scores, method='ward')
     ordered_player_ids = [player_ids[i] for i in result_order]
-
-    if plot:
-        plot_dendrogram(clusters, player_ids, con)
-        plot_scores(ordered_scores, ordered_player_ids, con)
 
     draft_player_lists = []
     for draft_player_number in draft_player_numbers:
         draft_player_ids = ordered_player_ids[:draft_player_number]
         ordered_player_ids = ordered_player_ids[draft_player_number:]
         draft_player_lists.append(draft_player_ids)
+
+    if GENERATE_PLOTS:
+        clusters = hierarchy.linkage(scores, method='ward')
+        plot_dendrogram(clusters, player_ids, con)
+        plot_scores(ordered_scores, ordered_player_ids, con)
 
     return draft_player_lists
 

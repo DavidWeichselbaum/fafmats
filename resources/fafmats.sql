@@ -35,6 +35,7 @@ CREATE TABLE draftPlayer (
     player INTEGER,
     draft INTEGER,
     rank INTEGER,
+    active INTEGER,
     FOREIGN KEY(player) REFERENCES player(id),
     FOREIGN KEY(draft) REFERENCES draft(id)
 );

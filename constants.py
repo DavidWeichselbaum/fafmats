@@ -32,3 +32,4 @@ INVERSE_RESULT_DICT = {
 YES_STRINGS = ['y', 'Y', 'yes', 'Yes']
 NO_STRINGS = ['n', 'N', 'no', 'No']
 SORT_METHOD_STRINGS = ('a', 'A', 'e', 'E', 'd', 'D')
+GENERATE_PLOTS = False

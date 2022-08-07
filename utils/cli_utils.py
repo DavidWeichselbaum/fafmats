@@ -8,7 +8,8 @@ from constants import RESULT_SCORE_DICT, WRONG_ORDER_RESULTS, INVERSE_RESULT_DIC
 from utils.db_utils import add_player, add_match, update_elo, \
     get_player_id_by_name, get_player_elo, \
     get_players_table, get_matches_table, get_history_table, \
-    add_draft, get_draft_id_by_name, add_player_to_draft, get_drafts_table, \
+    add_draft, get_draft_id_by_name, add_player_to_draft, \
+    get_drafts_table, get_draft_table, \
     get_all_player_ids, get_fafmats_scores, get_player_name_by_id, get_n_encounters, \
     get_elo_difference
 from utils.elo import get_elo_difference_from_result
@@ -259,17 +260,21 @@ def handle_add_draft(draft_name, con):
 def handle_show_drafts(input_string, con):
     draft_id, player_id = None, None
 
-    if input_string:
+    if not input_string:
+        drafts_table = get_drafts_table(con)
+    else:
         draft_id = get_draft_id_by_name(input_string, con)
-        drafts_table = get_drafts_table(con, draft_id=draft_id)
-    elif input_string and not draft_id:
         player_id = get_player_id_by_name(input_string, con)
-        drafts_table = get_drafts_table(con, player_id=player_id)
-    elif input_string and not draft_id and not player_id:
+
+    if input_string and draft_id is None and player_id is None:
         log.error('"{}" is neither a draft nor a player!')
         return
-    else:
-        drafts_table = get_drafts_table(con)
+    elif draft_id is not None:
+        log.info('Showing draft "{}"'.format(input_string))
+        drafts_table = get_draft_table(draft_id, con)
+    elif player_id is not None:
+        log.info('Showing drafts including player "{}"'.format(input_string))
+        drafts_table = get_drafts_table(con, player_id=player_id)
 
     log.info('\n' + drafts_table)
 
