@@ -11,7 +11,8 @@ from utils.db_utils import add_player, add_match, update_elo, \
     add_draft, get_draft_id_by_name, add_player_to_draft, get_drafts_table, \
     get_all_player_ids, get_fafmats_scores, get_player_name_by_id, get_n_encounters, \
     get_elo_difference
-from utils.elo import get_elo_difference_from_result, get_draft_autopairing
+from utils.elo import get_elo_difference_from_result
+from utils.pairing import get_draft_autopairing
 
 
 log = logging.getLogger('cli_utils')
@@ -172,7 +173,7 @@ def handle_add_draft(draft_name, con):
 
     # separte drafts if wanted
     log.info('Start multi-table draft? Divide {} players into tables or leave emtpy.'.format(len(player_ids)))
-    draft_names, draft_player_numbers, draft_player_id_lists, draft_player_names_lists = [], [], [], []
+    draft_names, draft_player_numbers, draft_player_id_lists = [], [], []
     players_left = len(player_names)
     while True:
         player_number_string = input('    number players in draft "{}-{}" ({} left)> '.format(
@@ -200,7 +201,9 @@ def handle_add_draft(draft_name, con):
             return
 
     # automatically pair if wanted
-    if len(draft_names) > 1:
+    if len(draft_names) == 1:
+        draft_player_id_lists.append(player_ids)
+    else:
         autopair = True
         while True:
             confirmation_string = input('Autopair? [Y/n] > ')
@@ -213,16 +216,13 @@ def handle_add_draft(draft_name, con):
 
         if autopair:
             draft_player_id_lists = get_draft_autopairing(draft_player_numbers, player_ids, con)
+            print(draft_player_id_lists)
         else:
-            pass
-
-    else:
-        draft_player_id_lists.append(player_ids)
-        draft_player_names_lists.append(player_names)
+            return
 
     # start draft(s)
-    for draft_name, draft_player_names, draft_player_ids in \
-            zip(draft_names, draft_player_names_lists, draft_player_id_lists):
+    for draft_name, draft_player_ids in zip(draft_names, draft_player_id_lists):
+        draft_player_names = [get_player_name_by_id(player_id, con) for player_id in draft_player_ids]
 
         while True:
             confirmation_string = input('Add draft "{}" with players {}? [y/n] > '.format(
@@ -278,16 +278,16 @@ def handle_show_score(input_string, con):
         opponent_ids = get_all_player_ids(con)
         opponent_ids.remove(player_id)
 
-    opponent_id_score_tuples = get_fafmats_scores(player_id, opponent_ids, con)
-    opponent_id_score_tuples.sort(key=lambda x: x[1])
+    opponent_scores = get_fafmats_scores(player_id, opponent_ids, con)
 
     table_data = []
-    for opponent_id, score in opponent_id_score_tuples:
+    for opponent_id, score in zip(opponent_ids, opponent_scores):
         opponent_name = get_player_name_by_id(opponent_id, con)
         score_percent = score * 100
         elo_difference = get_elo_difference(player_id, opponent_id, con)
         n_encounters = get_n_encounters(player_id, opponent_id, con)
         table_data.append((opponent_name, score_percent, elo_difference, n_encounters))
 
+    table_data.sort(key=lambda x: x[1])
     table = tabulate(table_data, headers=('opponent', 'score', 'elo difference', 'encounters'), floatfmt='.0f')
     log.info('\n' + table)

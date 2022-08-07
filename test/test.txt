@@ -1,0 +1,301 @@
+p hugh janus
+y
+p dixi normus
+y
+p mike oxlong
+y
+p jenna talia
+y
+p pat myaz
+y
+p yuri nator
+y
+p lee king
+y
+p jack mehoff
+y
+p seymour buts
+y
+p stu pedasso
+y
+p ben dover
+y
+p ivana humpalot
+y
+p joe king
+y
+
+m hugh	mike	1:2
+y
+m mike	hugh	2:0
+y
+m mike	jack	2:0
+y
+m dixi	dixi	2:1
+y
+m pat	dixi	draw
+y
+m seymour	yuri	draw
+y
+m mike	pat	2:0
+y
+m ben	jack	draw
+y
+m hugh	dixi	2:0
+y
+m hugh	jenna	2:0
+y
+m hugh	mike	2:1
+y
+m seymour	mike	draw
+y
+m hugh	hugh	0:2
+y
+m pat	mike	1:2
+y
+m jack	hugh	2:1
+y
+m dixi	mike	0:2
+y
+m hugh	hugh	1:2
+y
+m seymour	mike	2:0
+y
+m dixi	mike	1:2
+y
+m dixi	hugh	1:2
+y
+m dixi	mike	1:2
+y
+m dixi	hugh	1:2
+y
+m dixi	mike	1:2
+y
+m dixi	hugh	1:2
+y
+m dixi	mike	1:2
+y
+m dixi	hugh	1:2
+y
+m yuri	mike	2:1
+y
+m jack	seymour	2:1
+y
+m jack	ben	1:2
+y
+m jenna	joe	0:2
+y
+m pat	dixi	1:2
+y
+m dixi	jenna	2:1
+y
+m jack	stu	1:2
+y
+m hugh	dixi	0:2
+y
+m jenna	stu	draw
+y
+m mike	yuri	2:1
+y
+m hugh	jenna	2:1
+y
+m mike	pat	2:0
+y
+m pat	pat	draw
+y
+m joe	pat	2:1
+y
+m stu	pat	1:2
+y
+m dixi	hugh	0:2
+y
+m hugh	mike	2:0
+y
+m yuri	joe	2:1
+y
+m pat	pat	2:0
+y
+m mike	stu	draw
+y
+m mike	jenna	draw
+y
+m dixi	hugh	2:0
+y
+m pat	yuri	2:0
+y
+m jenna	hugh	1:2
+y
+m yuri	pat	0:2
+y
+m dixi	stu	2:1
+y
+m jenna	pat	2:1
+y
+m mike	joe	draw
+y
+m mike	yuri	0:2
+y
+m mike	ben	0:2
+y
+m yuri	mike	2:1
+y
+m stu	dixi	1:2
+y
+m joe	dixi	draw
+y
+m mike	pat	1:2
+y
+m jenna	seymour	2:1
+y
+m hugh	pat	1:2
+y
+m ben	hugh	2:1
+y
+m jenna	joe	0:2
+y
+m jenna	pat	2:0
+y
+m jenna	joe	2:0
+y
+m jenna	pat	0:2
+y
+m jenna	pat	0:2
+y
+m jenna	pat	0:2
+y
+m dixi	pat	0:2
+y
+m ben	hugh	2:0
+y
+m pat	jack	1:2
+y
+m jenna	jack	draw
+y
+m pat	dixi	0:2
+y
+m dixi	ben	2:0
+y
+m joe	dixi	2:0
+y
+m joe	pat	2:1
+y
+m ben	mike	1:2
+y
+m dixi	hugh	2:1
+y
+m dixi	mike	2:1
+y
+m stu	seymour	2:0
+y
+m ben	dixi	2:0
+y
+m pat	mike	draw
+y
+m pat	jenna	2:0
+y
+m stu	joe	1:2
+y
+m hugh	ben	draw
+y
+m hugh	mike	0:2
+y
+m mike	dixi	1:2
+y
+m mike	pat	0:2
+y
+m jack	seymour	1:2
+y
+m seymour	dixi	0:2
+y
+m pat	ben	1:2
+y
+m yuri	stu	2:1
+y
+m mike	jack	0:2
+y
+m hugh	hugh	0:2
+y
+m joe	dixi	2:0
+y
+m mike	seymour	draw
+y
+m pat	dixi	0:2
+y
+m seymour	mike	1:2
+y
+m dixi	yuri	2:0
+y
+m hugh	hugh	2:0
+y
+m pat	mike	2:1
+y
+m dixi	dixi	2:1
+y
+m dixi	jenna	2:0
+y
+m stu	jenna	2:1
+y
+m mike	hugh	0:2
+y
+m hugh	ivana	0:2
+y
+m hugh	ivana	0:2
+y
+m hugh	ivana	0:2
+y
+m hugh	ivana	0:2
+y
+m hugh	ivana	2:0
+y
+m hugh	ivana	2:0
+y
+m hugh	ivana	2:0
+y
+
+F mike dixi pat stu
+
+F mike
+
+d loldraft
+hugh
+dixi
+mike
+jenna
+yuri
+pat
+lee
+jack
+seymour
+stu
+ben
+joe
+ivana
+
+6
+7
+
+y
+y
+
+d rofldraft
+hugh
+dixi
+mike
+jenna
+yuri
+pat
+lee
+jack
+seymour
+stu
+ben
+joe
+ivana
+
+4
+4
+5
+
+y
+y
+y
