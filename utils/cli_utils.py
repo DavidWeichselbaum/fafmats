@@ -142,15 +142,9 @@ def handle_draft(input_string, con):
     #     handle_draft_pairings()
 
 
-def handle_add_draft(draft_name, con):
-    draft_id = get_draft_id_by_name(draft_name, con)
-    if draft_id is not None:
-        log.error('Name already exists!')
-        return
-
-    # add players
+def handle_get_draft_players(con):
     log.info('Add Players, stop with empty input.')
-    player_ids, player_names = [], []
+    player_ids = []
     while True:
         player_name = input('    player #{} > '.format(len(player_ids) + 1))
         if player_name == '':
@@ -165,16 +159,13 @@ def handle_add_draft(draft_name, con):
             continue
         else:
             player_ids.append(player_id)
-            player_names.append(player_name)
+    return player_ids
 
-    if len(player_ids) < 2:
-        log.error('Can\'t have a draft alone now, can you?')
-        return
 
-    # separte drafts if wanted
+def handle_draft_separation(draft_name, player_ids, con):
     log.info('Start multi-table draft? Divide {} players into tables or leave emtpy.'.format(len(player_ids)))
-    draft_names, draft_player_numbers, draft_player_id_lists = [], [], []
-    players_left = len(player_names)
+    draft_names, draft_player_numbers = [], []
+    players_left = len(player_ids)
     while True:
         player_number_string = input('    number players in draft "{}-{}" ({} left)> '.format(
             draft_name, len(draft_names) + 1, players_left))
@@ -198,29 +189,29 @@ def handle_add_draft(draft_name, con):
             break
         elif players_left < 2:
             log.warning('I\'m sure we can do better in dividing them up, hm?')
-            return
+            raise ValueError
 
-    # automatically pair if wanted
-    if len(draft_names) == 1:
-        draft_player_id_lists.append(player_ids)
+    return draft_names, draft_player_numbers
+
+
+def handle_table_pairing(draft_player_numbers, player_ids, con):
+    autopair = True
+    while True:
+        confirmation_string = input('Autopair? [Y/n] > ')
+        if confirmation_string in YES_STRINGS + ['']:
+            autopair = True
+            break
+        elif confirmation_string in NO_STRINGS:
+            autopair = False
+            break
+
+    if autopair:
+        return get_draft_autopairing(draft_player_numbers, player_ids, con)
     else:
-        autopair = True
-        while True:
-            confirmation_string = input('Autopair? [Y/n] > ')
-            if confirmation_string in YES_STRINGS + ['']:
-                autopair = True
-                break
-            elif confirmation_string in NO_STRINGS:
-                autopair = False
-                break
+        return
 
-        if autopair:
-            draft_player_id_lists = get_draft_autopairing(draft_player_numbers, player_ids, con)
-            print(draft_player_id_lists)
-        else:
-            return
 
-    # start draft(s)
+def handle_add_draft_confirmation(draft_name, draft_names, draft_player_id_lists, con):
     for draft_name, draft_player_ids in zip(draft_names, draft_player_id_lists):
         draft_player_names = [get_player_name_by_id(player_id, con) for player_id in draft_player_ids]
 
@@ -230,13 +221,39 @@ def handle_add_draft(draft_name, con):
             if confirmation_string in YES_STRINGS:
                 break
             elif confirmation_string in NO_STRINGS:
+                log.warning('Aborted draft "{}"'.format(draft_name))
                 return
 
+    for draft_name, draft_player_ids in zip(draft_names, draft_player_id_lists):
+        draft_player_names = [get_player_name_by_id(player_id, con) for player_id in draft_player_ids]
+
         draft_id = add_draft(draft_name, con)
-        for player_id in player_ids:
+        for player_id in draft_player_ids:
             add_player_to_draft(player_id, draft_id, con)
 
-        log.info('Added draft "{}" with players: {}'.format(draft_name, ', '.join(player_names)))
+        log.info('Added draft "{}" with players: {}'.format(draft_name, ', '.join(draft_player_names)))
+
+
+def handle_add_draft(draft_name, con):
+    draft_id = get_draft_id_by_name(draft_name, con)
+    if draft_id is not None:
+        log.error('Name already exists!')
+        return
+
+    player_ids = handle_get_draft_players(con)
+
+    if len(player_ids) < 2:
+        log.error('Can\'t have a draft alone now, can you?')
+        return
+
+    draft_names, draft_player_numbers = handle_draft_separation(draft_name, player_ids, con)
+
+    if len(draft_names) == 1:
+        draft_player_id_lists = [player_ids]
+    else:
+        draft_player_id_lists = handle_table_pairing(draft_player_numbers, player_ids, con)
+
+    handle_add_draft_confirmation(draft_name, draft_names, draft_player_id_lists, con)
 
 
 def handle_show_drafts(input_string, con):
