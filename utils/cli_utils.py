@@ -10,8 +10,8 @@ from utils.db_utils import add_player, add_match, update_elo, \
     get_players_table, get_matches_table, get_history_table, \
     add_draft, get_draft_id_by_name, add_player_to_draft, \
     get_drafts_table, get_draft_table, \
-    get_all_player_ids, get_fafmats_scores, get_player_name_by_id, get_n_encounters, \
-    get_elo_difference
+    get_all_player_ids, get_player_name_by_id, get_n_encounters, \
+    get_elo_difference, handle_draft_pairings, get_fafmats_scores
 from utils.elo import get_elo_difference_from_result
 from utils.pairing import get_draft_autopairing
 
@@ -117,7 +117,7 @@ def handle_show_matches(input_string, con):
     if input_string:
         player_id = get_player_id_by_name(input_string, con)
         if player_id is None:
-            log.error('Did not find that person!')
+            log.error('Could not find that person!')
             return
     matches_table = get_matches_table(con, player_id)
     log.info('\n' + matches_table)
@@ -126,24 +126,29 @@ def handle_show_matches(input_string, con):
 def handle_show_history(input_string, con):
     player_id = get_player_id_by_name(input_string, con)
     if player_id is None:
-        log.error('Did not find that person!')
+        log.error('Could not find that person!')
         return
     history_table = get_history_table(con, player_id)
     log.info('\n' + history_table)
 
 
 def handle_draft(input_string, con):
-    method = re.findall(' ([A-z])$', input_string)
-    if not method:
+    method_matches = re.findall(' ([A-z])$', input_string)
+    if not method_matches:
         handle_add_draft(input_string, con)
+        return
 
-    # draft_name = input_string[:-2]
-    # draft_id = get_draft_id_by_name(draft_name, con)
-    # if method == 'p':
-    #     handle_draft_pairings()
+    draft_name = input_string[:-2]
+    draft_id = get_draft_id_by_name(draft_name, con)
+    if draft_id is None:
+        log.error('Could not find draft "{}"'.format(draft_name))
+
+    method = method_matches[0]
+    if method == 'p':
+        handle_draft_pairings(draft_id, con)
 
 
-def handle_get_draft_players(con):
+def handle_add_draft_players(con):
     log.info('Add Players, stop with empty input.')
     player_ids = []
     while True:
@@ -240,8 +245,11 @@ def handle_add_draft(draft_name, con):
     if draft_id is not None:
         log.error('Name already exists!')
         return
+    if ' ' in draft_name:
+        log.error('No whitespaces allowed in names!')
+        return
 
-    player_ids = handle_get_draft_players(con)
+    player_ids = handle_add_draft_players(con)
 
     if len(player_ids) < 2:
         log.error('Can\'t have a draft alone now, can you?')

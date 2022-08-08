@@ -4,9 +4,9 @@ from datetime import datetime
 
 from tabulate import tabulate
 
-from constants import STARGING_ELO, INVERSE_RESULT_DICT, SQLITE_SCRIPT_PATH, DATABASE_PATH, \
-    FUN_FRIENDSHIP_RATIO
+from constants import STARGING_ELO, INVERSE_RESULT_DICT, SQLITE_SCRIPT_PATH, DATABASE_PATH
 from utils.utils import get_ascii_bar
+from utils.elo import calculate_fafmats_scores
 
 
 log = logging.getLogger('db_utils')
@@ -176,8 +176,8 @@ def get_history_table(con, player_id, graph_width=100):
 
 
 def add_draft(name, con):
-    sql = 'INSERT INTO draft (name, active, date) values(?, ?, ?)'
-    data = (name, True, datetime.now())
+    sql = 'INSERT INTO draft (name, active, round, date) values(?, ?, ?, ?)'
+    data = (name, True, 1, datetime.now())
 
     cursor = con.cursor()
     try:
@@ -259,6 +259,17 @@ def get_elo_difference(playerA_id, playerB_id, con):
     return playerB_elo - playerA_elo
 
 
+def get_fafmats_scores(player_id, opponent_ids, con):
+    elo_differences, n_encounters_list = [], []
+    for opponent_id in opponent_ids:
+        elo_difference = abs(get_elo_difference(player_id, opponent_id, con))
+        n_encounters = get_n_encounters(player_id, opponent_id, con)
+        elo_differences.append(elo_difference)
+        n_encounters_list.append(n_encounters)
+
+    return calculate_fafmats_scores(elo_differences, n_encounters_list)
+
+
 def get_n_encounters(playerA_id, playerB_id, con):
     data = (playerA_id, playerB_id, playerB_id, playerA_id)
     result = con.execute("""
@@ -268,48 +279,6 @@ def get_n_encounters(playerA_id, playerB_id, con):
         """, data)
     player_results = result.fetchall()
     return len(player_results)
-
-
-def get_elo_score(elo_difference, min_elo_difference, max_elo_difference):
-    if max_elo_difference - min_elo_difference == 0:
-        return 0.5
-    else:
-        return 1 - (elo_difference - min_elo_difference) / (max_elo_difference - min_elo_difference)
-
-
-def get_encounter_score(n_encounters, min_encounters, max_encounters):
-    if max_encounters - min_encounters == 0:
-        return 0.5
-    else:
-        return 1 - (n_encounters - min_encounters) / (max_encounters - min_encounters)
-
-
-def get_fafmats_score(elo_score, encounters_score):
-    return elo_score * FUN_FRIENDSHIP_RATIO + encounters_score * (1-FUN_FRIENDSHIP_RATIO)
-
-
-def get_fafmats_scores(player_id, opponent_ids, con):
-    elo_differences, n_encounters_list = [], []
-    for opponent_id in opponent_ids:
-        elo_difference = abs(get_elo_difference(player_id, opponent_id, con))
-        n_encounters = get_n_encounters(player_id, opponent_id, con)
-        elo_differences.append(elo_difference)
-        n_encounters_list.append(n_encounters)
-
-    min_elo_difference = min(elo_differences)
-    max_elo_difference = max(elo_differences)
-    min_encounters = min(n_encounters_list)
-    max_encounters = max(n_encounters_list)
-
-    opponent_scores = []
-    for opponent_id, elo_difference, n_encounters in zip(opponent_ids, elo_differences, n_encounters_list):
-        elo_score = get_elo_score(elo_difference, min_elo_difference, max_elo_difference)
-        encounters_score = get_encounter_score(n_encounters, min_encounters, max_encounters)
-
-        fafmats_score = get_fafmats_score(elo_score, encounters_score)
-        opponent_scores.append(fafmats_score)
-
-    return opponent_scores
 
 
 def get_draft_player_table(draft_id, con):
@@ -329,3 +298,15 @@ def get_draft_player_table(draft_id, con):
     for name, rank, active in data:
         formatted_data.append((name, rank, bool(active)))
     return tabulate(formatted_data, headers=('name', 'rank', 'active'))
+
+
+def get_round_by_draft_id(draft_id, con):
+    sql = 'SELECT d.round FROM draft d WHERE d.id = ?'
+    result = con.execute(sql, [draft_id])
+    round_ = result.fetchall()
+    return round_[0][0]
+
+
+def handle_draft_pairings(draft_id, con):
+    round_ = get_round_by_draft_id(draft_id, con)
+    log.info(round_)

@@ -48,7 +48,7 @@ HELP_MESSAGE = """
                                   'r': remove player
                                   'm': add match
  D [<NAME>]                     lists drafts and draft details
- F <NAME> [<NAME> ...]          get fafmats score between player and all player or list of player
+ F <NAME> [<NAME> ...]          get fafmats score between player and all players or list of player
 """
 
 
