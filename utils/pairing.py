@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy.cluster import hierarchy
 from scipy.spatial.distance import squareform
 from fastcluster import linkage
@@ -35,6 +34,7 @@ def get_draft_autopairing(draft_player_numbers, player_ids, con):
 
 
 def plot_scores(scores, player_ids, con):
+    import matplotlib.pyplot as plt
     player_names = [get_player_name_by_id(player_id, con) for player_id in player_ids]
     plt.title('FAFMATS Scores')
     plt.pcolormesh(scores)
@@ -45,6 +45,7 @@ def plot_scores(scores, player_ids, con):
 
 
 def plot_dendrogram(clusters, player_ids, con):
+    import matplotlib.pyplot as plt
     player_names = [get_player_name_by_id(player_id, con) for player_id in player_ids]
     plt.figure(figsize=(20, 6))
     plt.title('FAFMATS Tree')
