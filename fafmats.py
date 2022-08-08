@@ -8,8 +8,8 @@ import sqlite3 as sl
 
 from constants import LOG_PATH, DATABASE_PATH
 from utils.db_utils import init_db
-from utils.cli_utils import handle_add_player, handle_add_match, \
-    handle_show_players, handle_show_matches, handle_show_history, handle_show_drafts, \
+from utils.cli_utils import handle_add_player, handle_add_game, \
+    handle_show_players, handle_show_games, handle_show_history, handle_show_drafts, \
     handle_draft, handle_show_score
 
 
@@ -38,16 +38,16 @@ HELP_MESSAGE = """
                                   'a/A': alphabetical
                                   'e/E': elo
                                   'd/D': date
- m <NAME> <NAME> <RESULT>       add 1v1 match between named players.
+ m <NAME> <NAME> <RESULT>       add 1v1 game between named players.
                                 possible results: '2:0', '2:1', '1:2', '0:2', 'draw', 'forfeit'
- M [<NAME>]                     list matches, optionally filtered for player
+ M [<NAME>]                     list games, optionally filtered for player
  H <NAME>                       show elo history of player
- d <NAME> [<ACTION>]            start named draft(s) or runs action on draft.
+ d [<NAME>] [<ACTION>]          start (named) draft(s) or runs action on draft.
                                 actions:
                                   'p': generate pairings
+                                  'm': add game
                                   'r': remove player
-                                  'm': add match
- D [<NAME>]                     lists drafts and draft details
+ D [<NAME/ID>]                     lists drafts and draft details
  F <NAME> [<NAME> ...]          get fafmats score between player and all players or list of player
 """
 
@@ -72,9 +72,9 @@ while True:
         elif flag == 'P':
             handle_show_players(input_string, con)
         elif flag == 'm':
-            handle_add_match(input_string, con)
+            handle_add_game(input_string, con)
         elif flag == 'M':
-            handle_show_matches(input_string, con)
+            handle_show_games(input_string, con)
         elif flag == 'H':
             handle_show_history(input_string, con)
         elif flag == 'd':

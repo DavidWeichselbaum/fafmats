@@ -3,9 +3,10 @@ CREATE TABLE player (
     name TEXT NOT NULL UNIQUE,
     familyName TEXT NOT NULL,
     elo REAL NOT NULL,
-    joiningDate timestamp
+    joiningDate timestamp,
+    isSelected Integer NOT NULL
 );
-CREATE TABLE matchResult (
+CREATE TABLE game (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     playerA INTEGER,
     playerB INTEGER,
@@ -17,15 +18,15 @@ CREATE TABLE matchResult (
 CREATE TABLE history (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     player INTEGER,
-    match INTEGER,
+    game INTEGER,
     eloBefore REAL NOT NULL,
     eloAfter REAL NOT NULL,
     FOREIGN KEY(player) REFERENCES player(id),
-    FOREIGN KEY(match) REFERENCES match(id)
+    FOREIGN KEY(game) REFERENCES game(id)
 );
 CREATE TABLE draft (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL UNIQUE,
+    name TEXT UNIQUE,
     active INTEGER,
     round INTEGER,
     date timestamp
@@ -39,11 +40,11 @@ CREATE TABLE draftPlayer (
     FOREIGN KEY(player) REFERENCES player(id),
     FOREIGN KEY(draft) REFERENCES draft(id)
 );
-CREATE TABLE draftMatch (
+CREATE TABLE draftGame (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    match INTEGER,
+    game INTEGER,
     draft INTEGER,
     round INTEGER,
-    FOREIGN KEY(match) REFERENCES match(id),
+    FOREIGN KEY(game) REFERENCES game(id),
     FOREIGN KEY(draft) REFERENCES draft(id)
 );

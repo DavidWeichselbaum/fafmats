@@ -30,22 +30,22 @@ def add_player(first_name, last_name, con):
         log.error('Name already exists!')
 
 
-def add_match(playerA_id, playerB_id, result, con):
-    sql = 'INSERT INTO matchResult (playerA, playerB, result, date) values(?, ?, ?, ?)'
+def add_game(playerA_id, playerB_id, result, con):
+    sql = 'INSERT INTO gameResult (playerA, playerB, result, date) values(?, ?, ?, ?)'
     data = (playerA_id, playerB_id, result, datetime.now())
 
     cursor = con.cursor()
     cursor.execute(sql, data)
-    match_id = cursor.lastrowid
-    return match_id
+    game_id = cursor.lastrowid
+    return game_id
 
 
-def update_elo(player_id, elo_difference, match_id, con):
+def update_elo(player_id, elo_difference, game_id, con):
     elo_before = get_player_elo(player_id, con)
     elo_after = elo_before + elo_difference
 
-    sql = 'INSERT INTO history (player, match, eloBefore, eloAfter) values(?, ?, ?, ?)'
-    data = (player_id, match_id, elo_before, elo_after)
+    sql = 'INSERT INTO history (player, game, eloBefore, eloAfter) values(?, ?, ?, ?)'
+    data = (player_id, game_id, elo_before, elo_after)
     con.execute(sql, data)
 
     sql = 'UPDATE player SET elo = ? WHERE id = ?'
@@ -107,10 +107,10 @@ def get_players_table(con, method):
     return tabulate(data, headers=('name', 'elo', 'id', 'joined'), floatfmt=".0f")
 
 
-def get_matches_table(con, player_id=None):
+def get_games_table(con, player_id=None):
     if player_id is not None:
         data = con.execute("""
-            SELECT p1.name, p2.name, m.result, m.date FROM matchResult m
+            SELECT p1.name, p2.name, m.result, m.date FROM gameResult m
                 LEFT JOIN player p1
                     ON m.playerA = p1.id
                 LEFT JOIN player p2
@@ -130,7 +130,7 @@ def get_matches_table(con, player_id=None):
         data = sorted_data
     else:
         data = con.execute("""
-            SELECT p1.name, p2.name, m.result, m.date FROM matchResult m
+            SELECT p1.name, p2.name, m.result, m.date FROM gameResult m
                 LEFT JOIN player p1
                     ON m.playerA = p1.id
                 LEFT JOIN player p2
@@ -143,8 +143,8 @@ def get_matches_table(con, player_id=None):
 def get_history_table(con, player_id, graph_width=100):
     data = con.execute("""
         SELECT p1.name, p2.name, m.result, m.date, h.eloAfter FROM history h
-            LEFT JOIN matchResult m
-                ON m.id = h.match
+            LEFT JOIN gameResult m
+                ON m.id = h.game
             LEFT JOIN player p1
                 ON m.playerA = p1.id
             LEFT JOIN player p2
@@ -273,7 +273,7 @@ def get_fafmats_scores(player_id, opponent_ids, con):
 def get_n_encounters(playerA_id, playerB_id, con):
     data = (playerA_id, playerB_id, playerB_id, playerA_id)
     result = con.execute("""
-        SELECT m.date FROM matchResult m
+        SELECT m.date FROM gameResult m
             WHERE m.playerA = ? AND m.playerB = ? OR m.playerA = ? AND m.playerB = ?
             ORDER BY m.date
         """, data)

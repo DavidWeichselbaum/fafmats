@@ -5,9 +5,9 @@ from tabulate import tabulate
 
 from constants import RESULT_SCORE_DICT, WRONG_ORDER_RESULTS, INVERSE_RESULT_DICT, \
     YES_STRINGS, NO_STRINGS, SORT_METHOD_STRINGS
-from utils.db_utils import add_player, add_match, update_elo, \
+from utils.db_utils import add_player, add_game, update_elo, \
     get_player_id_by_name, get_player_elo, \
-    get_players_table, get_matches_table, get_history_table, \
+    get_players_table, get_games_table, get_history_table, \
     add_draft, get_draft_id_by_name, add_player_to_draft, \
     get_drafts_table, get_draft_table, \
     get_all_player_ids, get_player_name_by_id, get_n_encounters, \
@@ -51,7 +51,7 @@ def handle_show_players(input_string, con):
     log.info('\n' + player_table)
 
 
-def handle_add_match(input_string, con):
+def handle_add_game(input_string, con):
     # make sure everything is a-okay
     input_strings = input_string.split()
     if len(input_strings) != 3:
@@ -100,9 +100,9 @@ def handle_add_match(input_string, con):
         confirmation_string = input('    Add Result? [Y/n] > ')
         if confirmation_string in YES_STRINGS + ['']:
             log.info('Accepted Result')
-            match_id = add_match(playerA_id, playerB_id, result_string, con)
-            update_elo(playerA_id, elo_difference, match_id, con)
-            update_elo(playerB_id, - elo_difference, match_id, con)
+            game_id = add_game(playerA_id, playerB_id, result_string, con)
+            update_elo(playerA_id, elo_difference, game_id, con)
+            update_elo(playerB_id, - elo_difference, game_id, con)
             break
         elif confirmation_string in NO_STRINGS:
             log.info('Rejected Result')
@@ -112,15 +112,15 @@ def handle_add_match(input_string, con):
             return
 
 
-def handle_show_matches(input_string, con):
+def handle_show_games(input_string, con):
     player_id = None
     if input_string:
         player_id = get_player_id_by_name(input_string, con)
         if player_id is None:
             log.error('Could not find that person!')
             return
-    matches_table = get_matches_table(con, player_id)
-    log.info('\n' + matches_table)
+    games_table = get_games_table(con, player_id)
+    log.info('\n' + games_table)
 
 
 def handle_show_history(input_string, con):
@@ -133,8 +133,8 @@ def handle_show_history(input_string, con):
 
 
 def handle_draft(input_string, con):
-    method_matches = re.findall(' ([A-z])$', input_string)
-    if not method_matches:
+    method_games = re.findall(' ([A-z])$', input_string)
+    if not method_games:
         handle_add_draft(input_string, con)
         return
 
@@ -143,7 +143,7 @@ def handle_draft(input_string, con):
     if draft_id is None:
         log.error('Could not find draft "{}"'.format(draft_name))
 
-    method = method_matches[0]
+    method = method_games[0]
     if method == 'p':
         handle_draft_pairings(draft_id, con)
 
@@ -275,7 +275,7 @@ def handle_show_drafts(input_string, con):
         player_id = get_player_id_by_name(input_string, con)
 
     if input_string and draft_id is None and player_id is None:
-        log.error('"{}" is neither a draft nor a player!')
+        log.error('"{}" is neither a draft nor a player!'.format(input_string))
         return
     elif draft_id is not None:
         log.info('Showing draft "{}"'.format(input_string))
