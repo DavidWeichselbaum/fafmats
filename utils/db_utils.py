@@ -22,16 +22,16 @@ def init_db():
 
 
 def add_player(first_name, last_name, con):
-    sql = 'INSERT INTO player (name, familyName, elo, joiningDate) values(?, ?, ?, ?)'
-    data = (first_name, last_name, STARGING_ELO, datetime.now())
-    try:
-        con.execute(sql, data)
-    except sl.IntegrityError:
-        log.error('Name already exists!')
+    sql = 'INSERT INTO player (name, familyName, elo, joiningDate, isSelected) values(?, ?, ?, ?, ?)'
+    data = (first_name, last_name, STARGING_ELO, datetime.now(), True)
+    # try:
+    con.execute(sql, data)
+    # except sl.IntegrityError:
+    #     log.error('Name already exists!')
 
 
 def add_game(playerA_id, playerB_id, result, con):
-    sql = 'INSERT INTO gameResult (playerA, playerB, result, date) values(?, ?, ?, ?)'
+    sql = 'INSERT INTO game (playerA, playerB, result, date) values(?, ?, ?, ?)'
     data = (playerA_id, playerB_id, result, datetime.now())
 
     cursor = con.cursor()
@@ -110,7 +110,7 @@ def get_players_table(con, method):
 def get_games_table(con, player_id=None):
     if player_id is not None:
         data = con.execute("""
-            SELECT p1.name, p2.name, m.result, m.date FROM gameResult m
+            SELECT p1.name, p2.name, m.result, m.date FROM game m
                 LEFT JOIN player p1
                     ON m.playerA = p1.id
                 LEFT JOIN player p2
@@ -130,7 +130,7 @@ def get_games_table(con, player_id=None):
         data = sorted_data
     else:
         data = con.execute("""
-            SELECT p1.name, p2.name, m.result, m.date FROM gameResult m
+            SELECT p1.name, p2.name, m.result, m.date FROM game m
                 LEFT JOIN player p1
                     ON m.playerA = p1.id
                 LEFT JOIN player p2
@@ -143,7 +143,7 @@ def get_games_table(con, player_id=None):
 def get_history_table(con, player_id, graph_width=100):
     data = con.execute("""
         SELECT p1.name, p2.name, m.result, m.date, h.eloAfter FROM history h
-            LEFT JOIN gameResult m
+            LEFT JOIN game m
                 ON m.id = h.game
             LEFT JOIN player p1
                 ON m.playerA = p1.id
@@ -273,7 +273,7 @@ def get_fafmats_scores(player_id, opponent_ids, con):
 def get_n_encounters(playerA_id, playerB_id, con):
     data = (playerA_id, playerB_id, playerB_id, playerA_id)
     result = con.execute("""
-        SELECT m.date FROM gameResult m
+        SELECT m.date FROM game m
             WHERE m.playerA = ? AND m.playerB = ? OR m.playerA = ? AND m.playerB = ?
             ORDER BY m.date
         """, data)
