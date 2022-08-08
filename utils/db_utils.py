@@ -24,10 +24,10 @@ def init_db():
 def add_player(first_name, last_name, con):
     sql = 'INSERT INTO player (name, familyName, elo, joiningDate, isSelected) values(?, ?, ?, ?, ?)'
     data = (first_name, last_name, STARGING_ELO, datetime.now(), True)
-    # try:
-    con.execute(sql, data)
-    # except sl.IntegrityError:
-    #     log.error('Name already exists!')
+    try:
+        con.execute(sql, data)
+    except sl.IntegrityError:
+        log.error('Name already exists!')
 
 
 def add_game(playerA_id, playerB_id, result, con):
@@ -219,11 +219,11 @@ def add_player_to_draft(player_id, draft_id, con):
 
 def get_drafts_table(con, player_id=None, draft_id=None):
     if player_id is None and draft_id is None:
-        sql = 'SELECT d.name, d.active, d.round, d.date FROM draft d'
+        sql = 'SELECT d.id, d.name, d.active, d.round, d.date FROM draft d'
         data = con.execute(sql)
     elif player_id is not None:
         sql = """
-            SELECT d.name, d.active, d.round, d.date FROM draft d
+            SELECT d.id, d.name, d.active, d.round, d.date FROM draft d
                 LEFT JOIN draftPlayer p
                     ON d.id = p.draft
                 WHERE p.player = ?
@@ -233,16 +233,16 @@ def get_drafts_table(con, player_id=None, draft_id=None):
         data = result.fetchall()
     elif draft_id is not None:
         sql = """
-            SELECT d.name, d.active, d.round, d.date FROM draft d
+            SELECT d.id, d.name, d.active, d.round, d.date FROM draft d
                 WHERE d.id = ?
             """
         result = con.execute(sql, [draft_id])
         data = result.fetchall()
 
     formatted_data = []
-    for name, active, round_, date in data:
-        formatted_data.append((name, bool(active), round_, date))
-    return tabulate(formatted_data, headers=('name', 'active', 'round', 'date'))
+    for id_, name, active, round_, date in data:
+        formatted_data.append((id_, name, bool(active), round_, date))
+    return tabulate(formatted_data, headers=('id', 'name', 'active', 'round', 'date'))
 
 
 def get_draft_table(draft_id, con):

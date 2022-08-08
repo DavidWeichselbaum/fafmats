@@ -139,7 +139,11 @@ def handle_draft(input_string, con):
         return
 
     draft_name = input_string[:-2]
-    draft_id = get_draft_id_by_name(draft_name, con)
+    if draft_name.isdigit():
+        draft_id = int(draft_name)
+    else:
+        draft_id = get_draft_id_by_name(draft_name, con)
+
     if draft_id is None:
         log.error('Could not find draft "{}"'.format(draft_name))
 
@@ -271,7 +275,10 @@ def handle_show_drafts(input_string, con):
     if not input_string:
         drafts_table = get_drafts_table(con)
     else:
-        draft_id = get_draft_id_by_name(input_string, con)
+        if input_string.isdigit():
+            draft_id = int(input_string)
+        else:
+            draft_id = get_draft_id_by_name(input_string, con)
         player_id = get_player_id_by_name(input_string, con)
 
     if input_string and draft_id is None and player_id is None:
