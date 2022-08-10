@@ -17,6 +17,7 @@ def get_fafmats_ordered_player_ids(player_ids, con):
         scores_list.append(scores)
     scores = np.array(scores_list)
     np.fill_diagonal(scores, 1)  # sometimes scores to player itself might not be 1 due to diviion by zero checks
+    scores = abs(1 - scores)
 
     ordered_scores, result_order, result_linkage = compute_serial_matrix(scores, method='ward')
     ordered_player_ids = [player_ids[i] for i in result_order]
@@ -24,6 +25,7 @@ def get_fafmats_ordered_player_ids(player_ids, con):
     if GENERATE_PLOTS:
         clusters = hierarchy.linkage(scores, method='ward')
         plot_dendrogram(clusters, player_ids, con)
+        ordered_scores = abs(1 - ordered_scores)
         plot_scores(ordered_scores, ordered_player_ids, con)
 
     return ordered_player_ids
