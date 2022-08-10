@@ -13,8 +13,10 @@ from utils.db_utils import add_player, add_game, update_elo, \
     get_all_player_ids, get_player_name_by_id, get_n_encounters, \
     get_elo_difference, get_fafmats_scores, \
     get_round_by_draft_id, get_active_draft_players, \
-    handle_draft_game, add_player_draft_pairing, get_draft_pairings_by_draft_id, \
-    get_draft_suspensions_by_draft_id, get_draft_name_by_id
+    add_player_draft_pairing, get_draft_pairings_by_draft_id, \
+    get_draft_suspensions_by_draft_id, get_draft_name_by_id, \
+    delete_pairings_by_draft_id, delete_suspensions_by_draft_id, \
+    add_game_id_to_draft
 from utils.elo import get_elo_difference_from_result
 from utils.pairing import get_draft_autopairing, get_player_pairings
 
@@ -35,6 +37,8 @@ def get_confimation(question='Do the thing?', default=None):
         default_string = '[y/n]'
         yes_strings = YES_STRINGS
         no_strings = NO_STRINGS
+
+    log.info(question)
 
     while True:
         confirmation_string = input('{} {} > '.format(question, default_string))
@@ -126,6 +130,7 @@ def handle_add_game(input_string, con):
         game_id = add_game(playerA_id, playerB_id, result_string, con)
         update_elo(playerA_id, elo_difference, game_id, con)
         update_elo(playerB_id, - elo_difference, game_id, con)
+        return game_id
     else:
         log.info('Rejected Result')
 
@@ -176,6 +181,18 @@ def handle_draft(input_string, con):
     #     handle_remove_draft_player(draft_id, con)
     # else:
     #     log.warning('Method "{}" does not exist'.format(method))
+
+
+def handle_draft_game(draft_id, con):
+    draft_name = get_draft_name_by_id(draft_id, con)
+    draft_round = get_round_by_draft_id(draft_id, con)
+    match_adding_string = input('    Add game to draft "{}" round {} > '.format(draft_name, draft_round))
+
+    game_id = handle_add_game(match_adding_string, con)
+    if game_id is None:
+        return
+
+    add_game_id_to_draft(game_id, draft_id, draft_round, con)
 
 
 def handle_add_draft_players(con):
@@ -344,31 +361,36 @@ def handle_show_score(input_string, con):
 
 
 def handle_draft_pairings(draft_id, con):
-    round_ = get_round_by_draft_id(draft_id, con)
-    player_pairings = get_draft_pairings_by_draft_id(draft_id, round_, con)
+    draft_round = get_round_by_draft_id(draft_id, con)
+    player_pairings = get_draft_pairings_by_draft_id(draft_id, draft_round, con)
     if player_pairings:
-        log.warning('Pairings exist already! Overwrite?')
+        confirmation = get_confimation('Pairings exist already! Overwrite?', default=False)
+        if confirmation is not True:
+            return
+        else:
+            delete_pairings_by_draft_id(draft_id, draft_round, con)
+            delete_suspensions_by_draft_id(draft_id, draft_round, con)
 
-    log.info('Generating pairings for round {}'.format(round_))
+    log.info('Generating pairings for round {}'.format(draft_round))
 
     active_players = get_active_draft_players(draft_id, con)
-    player_pairings = get_player_pairings(draft_id, round_, active_players, con)
-    add_player_draft_pairing(player_pairings, draft_id, round_, con)
+    player_pairings = get_player_pairings(draft_id, draft_round, active_players, con)
+    add_player_draft_pairing(player_pairings, draft_id, draft_round, con)
     handle_show_draft_pairings(draft_id, con)
 
 
 def handle_show_draft_pairings(draft_id, con):
-    round_ = get_round_by_draft_id(draft_id, con)
+    draft_round = get_round_by_draft_id(draft_id, con)
     draft_name = get_draft_name_by_id(draft_id, con)
-    log.info('Pairings for draft "{}" round {}'.format(draft_name, round_))
+    log.info('Pairings for draft "{}" round {}'.format(draft_name, draft_round))
 
-    player_pairings = get_draft_pairings_by_draft_id(draft_id, round_, con)
+    player_pairings = get_draft_pairings_by_draft_id(draft_id, draft_round, con)
     for player_ids in player_pairings:
         player_A_name = get_player_name_by_id(player_ids[0], con)
         player_B_name = get_player_name_by_id(player_ids[1], con)
         log.info('Game:       {:<15} vs {:>15}'.format(player_A_name, player_B_name))
 
-    suspended_players = get_draft_suspensions_by_draft_id(draft_id, round_, con)
+    suspended_players = get_draft_suspensions_by_draft_id(draft_id, draft_round, con)
     for suspended_player_id in suspended_players:
         player_name = get_player_name_by_id(suspended_player_id, con)
         log.info('Suspension: {}'.format(player_name))

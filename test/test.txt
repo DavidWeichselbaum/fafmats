@@ -330,3 +330,12 @@ D
 d smoldraft p
 
 d smoldraft P
+
+d smoldraft p
+
+d smoldraft P
+
+d smoldraft p
+y
+
+d smoldraft P

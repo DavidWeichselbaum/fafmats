@@ -324,10 +324,6 @@ def get_active_draft_players(draft_id, con):
     return player_ids
 
 
-def handle_draft_game(draft_id, con):
-    pass
-
-
 def get_n_wins(player_id, draft_id, con):
     pass
 
@@ -377,3 +373,25 @@ def get_draft_suspensions_by_draft_id(draft_id, round_, con):
     data = result.fetchall()
     player_ids = [player_id_tuple[0] for player_id_tuple in data]
     return player_ids
+
+
+def delete_pairings_by_draft_id(draft_id, round_, con):
+    sql = """
+        DELETE FROM draftPairing
+            WHERE draft = ? AND round = ?
+        """
+    con.execute(sql, [draft_id, round_])
+
+
+def delete_suspensions_by_draft_id(draft_id, round_, con):
+    sql = """
+        DELETE FROM draftSuspension
+            WHERE draft = ? AND round = ?
+        """
+    con.execute(sql, [draft_id, round_])
+
+
+def add_game_id_to_draft(game_id, draft_id, draft_round, con):
+    sql = 'INSERT INTO draftGame (game, draft, round) values(?, ?, ?)'
+    data = (game_id, draft_id, draft_round)
+    con.execute(sql, data)
