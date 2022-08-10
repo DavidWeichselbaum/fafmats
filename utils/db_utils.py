@@ -7,6 +7,7 @@ from tabulate import tabulate
 from constants import STARGING_ELO, INVERSE_RESULT_DICT, SQLITE_SCRIPT_PATH, DATABASE_PATH
 from utils.utils import get_ascii_bar
 from utils.elo import calculate_fafmats_scores
+# from utils.pairing import get_player_pairings
 
 
 log = logging.getLogger('db_utils')
@@ -209,8 +210,8 @@ def get_draft_name_by_id(id_, con):
 
 
 def add_player_to_draft(player_id, draft_id, con):
-    sql = 'INSERT INTO draftPlayer (player, draft, rank) values(?, ?, ?)'
-    data = (player_id, draft_id, 0)
+    sql = 'INSERT INTO draftPlayer (player, draft, rank, active) values(?, ?, ?, ?)'
+    data = (player_id, draft_id, 0, 1)
     try:
         con.execute(sql, data)
     except sl.IntegrityError:
@@ -307,6 +308,51 @@ def get_round_by_draft_id(draft_id, con):
     return round_[0][0]
 
 
-def handle_draft_pairings(draft_id, con):
-    round_ = get_round_by_draft_id(draft_id, con)
-    log.info(round_)
+def get_active_draft_players(draft_id, con):
+    sql = """
+        SELECT p.id FROM draftPlayer dp
+            LEFT JOIN draft d
+                ON dp.draft = d.id
+            LEFT JOIN player p
+                ON dp.player = p.id
+            WHERE d.id = ? AND dp.active > 0
+            ORDER BY dp.rank
+        """
+    result = con.execute(sql, [draft_id])
+    data = result.fetchall()
+    player_ids = [item[0] for item in data]
+    return player_ids
+
+
+def handle_draft_game(draft_id, con):
+    pass
+
+
+def get_n_wins(player_id, draft_id, con):
+    pass
+
+
+def add_suspended_draft_player(player_id, draft_id, round_, con):
+    sql = 'INSERT INTO draftSuspension (draft, round, player) values(?, ?, ?)'
+    data = (draft_id, round_, player_id)
+    con.execute(sql, data)
+
+
+def add_pairing_draft_players(playerA_id, playerB_id, draft_id, round_, con):
+    sql = 'INSERT INTO draftPairing (draft, round, playerA, playerB) values(?, ?, ?, ?)'
+    data = (draft_id, round_, playerA_id, playerB_id)
+    con.execute(sql, data)
+
+
+def add_player_draft_pairing(player_pairings, draft_id, round_, con):
+    paired_player_pairs = [pairing for pairing in player_pairings if len(pairing) == 2]
+    suspended_player_ids = [pairing for pairing in player_pairings if len(pairing) == 1]
+
+    for paired_player_ids in paired_player_pairs:
+        playerA_id = paired_player_ids[0]
+        playerB_id = paired_player_ids[1]
+        add_pairing_draft_players(playerA_id, playerB_id, draft_id, round_, con)
+
+    for suspended_player_id_tuple in suspended_player_ids:
+        suspended_player_id = suspended_player_id_tuple[0]
+        add_suspended_draft_player(suspended_player_id, draft_id, round_, con)

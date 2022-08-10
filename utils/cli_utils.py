@@ -11,9 +11,11 @@ from utils.db_utils import add_player, add_game, update_elo, \
     add_draft, get_draft_id_by_name, add_player_to_draft, \
     get_drafts_table, get_draft_table, \
     get_all_player_ids, get_player_name_by_id, get_n_encounters, \
-    get_elo_difference, handle_draft_pairings, get_fafmats_scores
+    get_elo_difference, get_fafmats_scores, \
+    get_round_by_draft_id, get_active_draft_players, \
+    handle_draft_game, add_player_draft_pairing
 from utils.elo import get_elo_difference_from_result
-from utils.pairing import get_draft_autopairing
+from utils.pairing import get_draft_autopairing, get_player_pairings
 
 
 log = logging.getLogger('cli_utils')
@@ -150,6 +152,12 @@ def handle_draft(input_string, con):
     method = method_games[0]
     if method == 'p':
         handle_draft_pairings(draft_id, con)
+    elif method == 'g':
+        handle_draft_game(draft_id, con)
+    # elif method == 'r':
+    #     handle_remove_draft_player(draft_id, con)
+    # else:
+    #     log.warning('Method "{}" does not exist'.format(method))
 
 
 def handle_add_draft_players(con):
@@ -328,3 +336,25 @@ def handle_show_score(input_string, con):
     table_data.sort(key=lambda x: x[1])
     table = tabulate(table_data, headers=('opponent', 'score', 'elo difference', 'encounters'), floatfmt='.0f')
     log.info('\n' + table)
+
+
+def handle_draft_pairings(draft_id, con):
+    round_ = get_round_by_draft_id(draft_id, con)
+    log.info('Generating pairings for round {}'.format(round_))
+
+    active_players = get_active_draft_players(draft_id, con)
+    player_pairings = get_player_pairings(draft_id, round_, active_players, con)
+
+    log.info('Adding following pairing:')
+    for player_ids in player_pairings:
+        if len(player_ids) == 1:
+            player_name = get_player_name_by_id(player_ids[0], con)
+            log.info('Suspension: {:>21}'.format(player_name))
+        elif len(player_ids) == 2:
+            player_A_name = get_player_name_by_id(player_ids[0], con)
+            player_B_name = get_player_name_by_id(player_ids[1], con)
+            log.info('{:<15} vs {:>15}'.format(player_A_name, player_B_name))
+        else:
+            raise Exception('wtf')
+
+    add_player_draft_pairing(player_pairings, draft_id, round_, con)

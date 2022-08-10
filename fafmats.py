@@ -38,14 +38,14 @@ HELP_MESSAGE = """
                                   'a/A': alphabetical
                                   'e/E': elo
                                   'd/D': date
- m <NAME> <NAME> <RESULT>       add 1v1 game between named players.
+ g <NAME> <NAME> <RESULT>       add 1v1 game between named players.
                                 possible results: '2:0', '2:1', '1:2', '0:2', 'draw', 'forfeit'
- M [<NAME>]                     list games, optionally filtered for player
- H <NAME>                       show elo history of player
+ G [<NAME>]                     list games, optionally filtered for player
+ G <NAME>                       show elo history of player
  d [<NAME/ID>] [<ACTION>]       start (named) draft(s) or runs action on draft.
                                 actions:
                                   'p': generate pairings
-                                  'm': add game
+                                  'g': add game
                                   'r': remove player
  D [<NAME/ID>]                  lists drafts and draft details
  F <NAME> [<NAME> ...]          get fafmats score between player and all players or list of player
@@ -71,9 +71,9 @@ while True:
             handle_add_player(input_string, con)
         elif flag == 'P':
             handle_show_players(input_string, con)
-        elif flag == 'm':
+        elif flag == 'g':
             handle_add_game(input_string, con)
-        elif flag == 'M':
+        elif flag == 'G':
             handle_show_games(input_string, con)
         elif flag == 'H':
             handle_show_history(input_string, con)

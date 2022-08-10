@@ -40,6 +40,24 @@ CREATE TABLE draftPlayer (
     FOREIGN KEY(player) REFERENCES player(id),
     FOREIGN KEY(draft) REFERENCES draft(id)
 );
+CREATE TABLE draftPairing (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    draft INTEGER,
+    round INTEGER,
+    playerA INTEGER,
+    playerB INTEGER,
+    FOREIGN KEY(draft) REFERENCES draft(id),
+    FOREIGN KEY(playerA) REFERENCES player(id),
+    FOREIGN KEY(playerB) REFERENCES player(id)
+);
+CREATE TABLE draftSuspension (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    draft INTEGER,
+    round INTEGER,
+    player INTEGER,
+    FOREIGN KEY(draft) REFERENCES draft(id),
+    FOREIGN KEY(player) REFERENCES player(id)
+);
 CREATE TABLE draftGame (
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     game INTEGER,

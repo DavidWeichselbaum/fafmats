@@ -1,6 +1,6 @@
 import sqlite3 as sl
 
-from ..utils.pairing import get_draft_autopairing as get_draft_autopairing_con
+from .utils.pairing import get_draft_autopairing as get_draft_autopairing_con
 
 
 def get_draft_autopairing(draft_player_numbers, player_ids, db_path):

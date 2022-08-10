@@ -25,231 +25,231 @@ y
 p joe king
 y
 
-m hugh	mike	1:2
+g hugh	mike	1:2
 y
-m mike	hugh	2:0
+g mike	hugh	2:0
 y
-m mike	jack	2:0
+g mike	jack	2:0
 y
-m dixi	dixi	2:1
+g dixi	dixi	2:1
 y
-m pat	dixi	draw
+g pat	dixi	draw
 y
-m seymour	yuri	draw
+g seymour	yuri	draw
 y
-m mike	pat	2:0
+g mike	pat	2:0
 y
-m ben	jack	draw
+g ben	jack	draw
 y
-m hugh	dixi	2:0
+g hugh	dixi	2:0
 y
-m hugh	jenna	2:0
+g hugh	jenna	2:0
 y
-m hugh	mike	2:1
+g hugh	mike	2:1
 y
-m seymour	mike	draw
+g seymour	mike	draw
 y
-m hugh	hugh	0:2
+g hugh	hugh	0:2
 y
-m pat	mike	1:2
+g pat	mike	1:2
 y
-m jack	hugh	2:1
+g jack	hugh	2:1
 y
-m dixi	mike	0:2
+g dixi	mike	0:2
 y
-m hugh	hugh	1:2
+g hugh	hugh	1:2
 y
-m seymour	mike	2:0
+g seymour	mike	2:0
 y
-m dixi	mike	1:2
+g dixi	mike	1:2
 y
-m dixi	hugh	1:2
+g dixi	hugh	1:2
 y
-m dixi	mike	1:2
+g dixi	mike	1:2
 y
-m dixi	hugh	1:2
+g dixi	hugh	1:2
 y
-m dixi	mike	1:2
+g dixi	mike	1:2
 y
-m dixi	hugh	1:2
+g dixi	hugh	1:2
 y
-m dixi	mike	1:2
+g dixi	mike	1:2
 y
-m dixi	hugh	1:2
+g dixi	hugh	1:2
 y
-m yuri	mike	2:1
+g yuri	mike	2:1
 y
-m jack	seymour	2:1
+g jack	seymour	2:1
 y
-m jack	ben	1:2
+g jack	ben	1:2
 y
-m jenna	joe	0:2
+g jenna	joe	0:2
 y
-m pat	dixi	1:2
+g pat	dixi	1:2
 y
-m dixi	jenna	2:1
+g dixi	jenna	2:1
 y
-m jack	stu	1:2
+g jack	stu	1:2
 y
-m hugh	dixi	0:2
+g hugh	dixi	0:2
 y
-m jenna	stu	draw
+g jenna	stu	draw
 y
-m mike	yuri	2:1
+g mike	yuri	2:1
 y
-m hugh	jenna	2:1
+g hugh	jenna	2:1
 y
-m mike	pat	2:0
+g mike	pat	2:0
 y
-m pat	pat	draw
+g pat	pat	draw
 y
-m joe	pat	2:1
+g joe	pat	2:1
 y
-m stu	pat	1:2
+g stu	pat	1:2
 y
-m dixi	hugh	0:2
+g dixi	hugh	0:2
 y
-m hugh	mike	2:0
+g hugh	mike	2:0
 y
-m yuri	joe	2:1
+g yuri	joe	2:1
 y
-m pat	pat	2:0
+g pat	pat	2:0
 y
-m mike	stu	draw
+g mike	stu	draw
 y
-m mike	jenna	draw
+g mike	jenna	draw
 y
-m dixi	hugh	2:0
+g dixi	hugh	2:0
 y
-m pat	yuri	2:0
+g pat	yuri	2:0
 y
-m jenna	hugh	1:2
+g jenna	hugh	1:2
 y
-m yuri	pat	0:2
+g yuri	pat	0:2
 y
-m dixi	stu	2:1
+g dixi	stu	2:1
 y
-m jenna	pat	2:1
+g jenna	pat	2:1
 y
-m mike	joe	draw
+g mike	joe	draw
 y
-m mike	yuri	0:2
+g mike	yuri	0:2
 y
-m mike	ben	0:2
+g mike	ben	0:2
 y
-m yuri	mike	2:1
+g yuri	mike	2:1
 y
-m stu	dixi	1:2
+g stu	dixi	1:2
 y
-m joe	dixi	draw
+g joe	dixi	draw
 y
-m mike	pat	1:2
+g mike	pat	1:2
 y
-m jenna	seymour	2:1
+g jenna	seymour	2:1
 y
-m hugh	pat	1:2
+g hugh	pat	1:2
 y
-m ben	hugh	2:1
+g ben	hugh	2:1
 y
-m jenna	joe	0:2
+g jenna	joe	0:2
 y
-m jenna	pat	2:0
+g jenna	pat	2:0
 y
-m jenna	joe	2:0
+g jenna	joe	2:0
 y
-m jenna	pat	0:2
+g jenna	pat	0:2
 y
-m jenna	pat	0:2
+g jenna	pat	0:2
 y
-m jenna	pat	0:2
+g jenna	pat	0:2
 y
-m dixi	pat	0:2
+g dixi	pat	0:2
 y
-m ben	hugh	2:0
+g ben	hugh	2:0
 y
-m pat	jack	1:2
+g pat	jack	1:2
 y
-m jenna	jack	draw
+g jenna	jack	draw
 y
-m pat	dixi	0:2
+g pat	dixi	0:2
 y
-m dixi	ben	2:0
+g dixi	ben	2:0
 y
-m joe	dixi	2:0
+g joe	dixi	2:0
 y
-m joe	pat	2:1
+g joe	pat	2:1
 y
-m ben	mike	1:2
+g ben	mike	1:2
 y
-m dixi	hugh	2:1
+g dixi	hugh	2:1
 y
-m dixi	mike	2:1
+g dixi	mike	2:1
 y
-m stu	seymour	2:0
+g stu	seymour	2:0
 y
-m ben	dixi	2:0
+g ben	dixi	2:0
 y
-m pat	mike	draw
+g pat	mike	draw
 y
-m pat	jenna	2:0
+g pat	jenna	2:0
 y
-m stu	joe	1:2
+g stu	joe	1:2
 y
-m hugh	ben	draw
+g hugh	ben	draw
 y
-m hugh	mike	0:2
+g hugh	mike	0:2
 y
-m mike	dixi	1:2
+g mike	dixi	1:2
 y
-m mike	pat	0:2
+g mike	pat	0:2
 y
-m jack	seymour	1:2
+g jack	seymour	1:2
 y
-m seymour	dixi	0:2
+g seymour	dixi	0:2
 y
-m pat	ben	1:2
+g pat	ben	1:2
 y
-m yuri	stu	2:1
+g yuri	stu	2:1
 y
-m mike	jack	0:2
+g mike	jack	0:2
 y
-m hugh	hugh	0:2
+g hugh	hugh	0:2
 y
-m joe	dixi	2:0
+g joe	dixi	2:0
 y
-m mike	seymour	draw
+g mike	seymour	draw
 y
-m pat	dixi	0:2
+g pat	dixi	0:2
 y
-m seymour	mike	1:2
+g seymour	mike	1:2
 y
-m dixi	yuri	2:0
+g dixi	yuri	2:0
 y
-m hugh	hugh	2:0
+g hugh	hugh	2:0
 y
-m pat	mike	2:1
+g pat	mike	2:1
 y
-m dixi	dixi	2:1
+g dixi	dixi	2:1
 y
-m dixi	jenna	2:0
+g dixi	jenna	2:0
 y
-m stu	jenna	2:1
+g stu	jenna	2:1
 y
-m mike	hugh	0:2
+g mike	hugh	0:2
 y
-m hugh	ivana	0:2
+g hugh	ivana	0:2
 y
-m hugh	ivana	0:2
+g hugh	ivana	0:2
 y
-m hugh	ivana	0:2
+g hugh	ivana	0:2
 y
-m hugh	ivana	0:2
+g hugh	ivana	0:2
 y
-m hugh	ivana	2:0
+g hugh	ivana	2:0
 y
-m hugh	ivana	2:0
+g hugh	ivana	2:0
 y
-m hugh	ivana	2:0
+g hugh	ivana	2:0
 y
 
 F mike dixi pat stu
@@ -304,9 +304,10 @@ d smoldraft
 hugh
 dixi
 mike
-jenna
+stu
 yuri
 pat
+joe
 
 
 y
@@ -314,8 +315,6 @@ y
 D stu
 D hugh
 D smoldraft
-
-d smoldraft p
 
 d
 hugh
@@ -327,3 +326,5 @@ jenna
 y
 
 D
+
+d smoldraft p
