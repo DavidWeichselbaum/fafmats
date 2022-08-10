@@ -22,6 +22,30 @@ from utils.pairing import get_draft_autopairing, get_player_pairings
 log = logging.getLogger('cli_utils')
 
 
+def get_confimation(question='Do the thing?', default=None):
+    if default is True:
+        default_string = '[Y/n]'
+        yes_strings = YES_STRINGS + ['']
+        no_strings = NO_STRINGS
+    elif default is False:
+        default_string = '[y/N]'
+        yes_strings = YES_STRINGS
+        no_strings = NO_STRINGS + ['']
+    else:
+        default_string = '[y/n]'
+        yes_strings = YES_STRINGS
+        no_strings = NO_STRINGS
+
+    while True:
+        confirmation_string = input('{} {} > '.format(question, default_string))
+        if confirmation_string in yes_strings:
+            return True
+        elif confirmation_string in no_strings:
+            return False
+        else:
+            return None
+
+
 def handle_add_player(input_string, con):
     names = input_string.split()
     if len(names) != 2:
@@ -33,14 +57,10 @@ def handle_add_player(input_string, con):
         log.error('No whitespaces allowed in names!')
         return
 
-    while True:
-        confirmation_string = input('    Add player "{}"? [y/n] > '.format(input_string))
-        if confirmation_string in YES_STRINGS:
-            add_player(first_name, last_name, con)
-            log.info('Added player "{}"'.format(input_string))
-            return
-        elif confirmation_string in NO_STRINGS:
-            return
+    confirmation = get_confimation('    Add player "{}"?'.format(input_string))
+    if confirmation:
+        add_player(first_name, last_name, con)
+        log.info('Added player "{}"'.format(input_string))
 
 
 def handle_show_players(input_string, con):
@@ -99,20 +119,15 @@ def handle_add_game(input_string, con):
     log.info('Results:\n{}: {:.0f} {} {:.0f} = {:.0f} elo\n{}: {:.0f} {} {:.0f} = {:.0f} elo".'.format(
         playerA_name, playerA_elo, playerA_elo_sign, abs(elo_difference), playerA_elo_new,
         playerB_name, playerB_elo, playerB_elo_sign, abs(elo_difference), playerB_elo_new))
-    while True:
-        confirmation_string = input('    Add Result? [Y/n] > ')
-        if confirmation_string in YES_STRINGS + ['']:
-            log.info('Accepted Result')
-            game_id = add_game(playerA_id, playerB_id, result_string, con)
-            update_elo(playerA_id, elo_difference, game_id, con)
-            update_elo(playerB_id, - elo_difference, game_id, con)
-            break
-        elif confirmation_string in NO_STRINGS:
-            log.info('Rejected Result')
-            break
-        else:
-            log.info('ENGLISH! DO. YOU. SPEAK. IT???')
-            return
+
+    confirmation = get_confimation('    Add result?', default=True)
+    if confirmation:
+        log.info('Accepted Result')
+        game_id = add_game(playerA_id, playerB_id, result_string, con)
+        update_elo(playerA_id, elo_difference, game_id, con)
+        update_elo(playerB_id, - elo_difference, game_id, con)
+    else:
+        log.info('Rejected Result')
 
 
 def handle_show_games(input_string, con):
@@ -216,34 +231,20 @@ def handle_draft_separation(draft_name, player_ids, con):
 
 
 def handle_table_pairing(draft_player_numbers, player_ids, con):
-    autopair = True
-    while True:
-        confirmation_string = input('Autopair? [Y/n] > ')
-        if confirmation_string in YES_STRINGS + ['']:
-            autopair = True
-            break
-        elif confirmation_string in NO_STRINGS:
-            autopair = False
-            break
-
-    if autopair:
+    confirmation = get_confimation('Autopair?', default=True)
+    if confirmation is True:
         return get_draft_autopairing(draft_player_numbers, player_ids, con)
-    else:
-        return
 
 
 def handle_add_draft_confirmation(draft_name, draft_names, draft_player_id_lists, con):
     for draft_name, draft_player_ids in zip(draft_names, draft_player_id_lists):
         draft_player_names = [get_player_name_by_id(player_id, con) for player_id in draft_player_ids]
 
-        while True:
-            confirmation_string = input('Add draft "{}" with players {}? [y/n] > '.format(
-                draft_name, ', '.join(draft_player_names)))
-            if confirmation_string in YES_STRINGS:
-                break
-            elif confirmation_string in NO_STRINGS:
-                log.warning('Aborted draft "{}"'.format(draft_name))
-                return
+        confirmation = get_confimation('Add draft "{}" with players {}?'.format(
+            draft_name, ', '.join(draft_player_names)))
+        if confirmation is False:
+            log.warning('Aborted draft "{}"'.format(draft_name))
+            return
 
     for draft_name, draft_player_ids in zip(draft_names, draft_player_id_lists):
         draft_player_names = [get_player_name_by_id(player_id, con) for player_id in draft_player_ids]
@@ -277,6 +278,7 @@ def handle_add_draft(draft_name, con):
     else:
         draft_player_id_lists = handle_table_pairing(draft_player_numbers, player_ids, con)
 
+    print(draft_name, draft_names, draft_player_id_lists, con)
     handle_add_draft_confirmation(draft_name, draft_names, draft_player_id_lists, con)
 
 
@@ -343,6 +345,10 @@ def handle_show_score(input_string, con):
 
 def handle_draft_pairings(draft_id, con):
     round_ = get_round_by_draft_id(draft_id, con)
+    player_pairings = get_draft_pairings_by_draft_id(draft_id, round_, con)
+    if player_pairings:
+        log.warning('Pairings exist already! Overwrite?')
+
     log.info('Generating pairings for round {}'.format(round_))
 
     active_players = get_active_draft_players(draft_id, con)
