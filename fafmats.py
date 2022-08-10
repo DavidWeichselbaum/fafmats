@@ -45,6 +45,7 @@ HELP_MESSAGE = """
  d [<NAME/ID>] [<ACTION>]       start (named) draft(s) or runs action on draft.
                                 actions:
                                   'p': generate pairings
+                                  'P': show pairings
                                   'g': add game
                                   'r': remove player
  D [<NAME/ID>]                  lists drafts and draft details

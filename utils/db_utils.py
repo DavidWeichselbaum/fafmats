@@ -356,3 +356,24 @@ def add_player_draft_pairing(player_pairings, draft_id, round_, con):
     for suspended_player_id_tuple in suspended_player_ids:
         suspended_player_id = suspended_player_id_tuple[0]
         add_suspended_draft_player(suspended_player_id, draft_id, round_, con)
+
+
+def get_draft_pairings_by_draft_id(draft_id, round_, con):
+    sql = """
+        SELECT dp.playerA, dp.playerB FROM draftPairing dp
+            WHERE dp.draft = ? AND dp.round = ?
+        """
+    result = con.execute(sql, [draft_id, round_])
+    pairings = result.fetchall()
+    return pairings
+
+
+def get_draft_suspensions_by_draft_id(draft_id, round_, con):
+    sql = """
+        SELECT dp.player FROM draftSuspension dp
+            WHERE dp.draft = ? AND dp.round = ?
+        """
+    result = con.execute(sql, [draft_id, round_])
+    data = result.fetchall()
+    player_ids = [player_id_tuple[0] for player_id_tuple in data]
+    return player_ids
