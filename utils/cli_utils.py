@@ -16,9 +16,10 @@ from utils.db_utils import add_player, add_game, update_elo, \
     add_player_draft_pairing, get_draft_pairings_by_draft_id, \
     get_draft_suspensions_by_draft_id, get_draft_name_by_id, \
     delete_pairings_by_draft_id, delete_suspensions_by_draft_id, \
-    add_game_id_to_draft
+    add_game_id_to_draft, get_draft_players
 from utils.elo import get_elo_difference_from_result
 from utils.pairing import get_draft_autopairing, get_player_pairings
+from data_types import HandleException
 
 
 log = logging.getLogger('cli_utils')
@@ -46,8 +47,6 @@ def get_confimation(question='Do the thing?', default=None):
             return True
         elif confirmation_string in no_strings:
             return False
-        else:
-            return None
 
 
 def handle_add_player(input_string, con):
@@ -78,38 +77,45 @@ def handle_show_players(input_string, con):
     log.info('\n' + player_table)
 
 
-def handle_add_game(input_string, con):
-    # make sure everything is a-okay
+def get_players_and_result_from_string(input_string, con):
     input_strings = input_string.split()
     if len(input_strings) != 3:
         log.error('Need 2 names and result!')
-        return
+        raise HandleException
 
     playerA_name = input_strings[0]
     playerB_name = input_strings[1]
     result_string = input_strings[2]
     if result_string not in RESULT_SCORE_DICT:
         log.error('Result must be one of {}'.format(RESULT_SCORE_DICT.keys()))
-        return
+        raise HandleException
 
     playerA_id = get_player_id_by_name(playerA_name, con)
     playerB_id = get_player_id_by_name(playerB_name, con)
     if playerA_id is None:
         log.error('Player "{}" does not exist. Too bad.'.format(playerA_name))
-        return
+        raise HandleException
     if playerB_id is None:
         log.error('Player "{}" does not exist. Lolnope.'.format(playerB_name))
-        return
+        raise HandleException
     if playerA_id == playerB_id:
         log.error('This is not solitaire, buddy!\nMinus 10 Elo :-)')
-        return
+        raise HandleException
 
-    # make winner always playerA
-    if result_string in WRONG_ORDER_RESULTS:
+    if result_string in WRONG_ORDER_RESULTS:  # make winner always playerA
         result_string = INVERSE_RESULT_DICT[result_string]
         playerA_name, playerB_name, = playerB_name, playerA_name
         playerA_id, playerB_id, = playerB_id, playerA_id
 
+    return playerA_id, playerB_id, result_string
+
+
+def handle_add_game(input_string, con):
+    playerA_id, playerB_id, result_string = get_players_and_result_from_string(input_string, con)
+    hande_add_game_result(playerA_id, playerB_id, result_string, con)
+
+
+def hande_add_game_result(playerA_id, playerB_id, result_string, con):
     # get elo difference
     playerA_elo = get_player_elo(playerA_id, con)
     playerB_elo = get_player_elo(playerB_id, con)
@@ -121,8 +127,8 @@ def handle_add_game(input_string, con):
     playerA_elo_sign = '+' if elo_difference >= 0 else '-'
     playerB_elo_sign = '+' if elo_difference <= 0 else '-'
     log.info('Results:\n{}: {:.0f} {} {:.0f} = {:.0f} elo\n{}: {:.0f} {} {:.0f} = {:.0f} elo".'.format(
-        playerA_name, playerA_elo, playerA_elo_sign, abs(elo_difference), playerA_elo_new,
-        playerB_name, playerB_elo, playerB_elo_sign, abs(elo_difference), playerB_elo_new))
+        get_player_name_by_id(playerA_id, con), playerA_elo, playerA_elo_sign, abs(elo_difference), playerA_elo_new,
+        get_player_name_by_id(playerB_id, con), playerB_elo, playerB_elo_sign, abs(elo_difference), playerB_elo_new))
 
     confirmation = get_confimation('    Add result?', default=True)
     if confirmation:
@@ -133,6 +139,7 @@ def handle_add_game(input_string, con):
         return game_id
     else:
         log.info('Rejected Result')
+        raise HandleException
 
 
 def handle_show_games(input_string, con):
@@ -181,18 +188,6 @@ def handle_draft(input_string, con):
     #     handle_remove_draft_player(draft_id, con)
     # else:
     #     log.warning('Method "{}" does not exist'.format(method))
-
-
-def handle_draft_game(draft_id, con):
-    draft_name = get_draft_name_by_id(draft_id, con)
-    draft_round = get_round_by_draft_id(draft_id, con)
-    match_adding_string = input('    Add game to draft "{}" round {} > '.format(draft_name, draft_round))
-
-    game_id = handle_add_game(match_adding_string, con)
-    if game_id is None:
-        return
-
-    add_game_id_to_draft(game_id, draft_id, draft_round, con)
 
 
 def handle_add_draft_players(con):
@@ -249,7 +244,7 @@ def handle_draft_separation(draft_name, player_ids, con):
 
 def handle_table_pairing(draft_player_numbers, player_ids, con):
     confirmation = get_confimation('Autopair?', default=True)
-    if confirmation is True:
+    if confirmation:
         return get_draft_autopairing(draft_player_numbers, player_ids, con)
 
 
@@ -259,7 +254,7 @@ def handle_add_draft_confirmation(draft_name, draft_names, draft_player_id_lists
 
         confirmation = get_confimation('Add draft "{}" with players {}?'.format(
             draft_name, ', '.join(draft_player_names)))
-        if confirmation is False:
+        if not confirmation:
             log.warning('Aborted draft "{}"'.format(draft_name))
             return
 
@@ -365,7 +360,7 @@ def handle_draft_pairings(draft_id, con):
     player_pairings = get_draft_pairings_by_draft_id(draft_id, draft_round, con)
     if player_pairings:
         confirmation = get_confimation('Pairings exist already! Overwrite?', default=False)
-        if confirmation is not True:
+        if not confirmation:
             return
         else:
             delete_pairings_by_draft_id(draft_id, draft_round, con)
@@ -394,3 +389,35 @@ def handle_show_draft_pairings(draft_id, con):
     for suspended_player_id in suspended_players:
         player_name = get_player_name_by_id(suspended_player_id, con)
         log.info('Suspension: {}'.format(player_name))
+
+
+def handle_draft_game(draft_id, con):
+    draft_name = get_draft_name_by_id(draft_id, con)
+    draft_round = get_round_by_draft_id(draft_id, con)
+    match_adding_string = input('    Add game to draft "{}" round {} > '.format(draft_name, draft_round))
+
+    playerA_id, playerB_id, result_string = get_players_and_result_from_string(match_adding_string, con)
+
+    # check for non draft players
+    draft_player_ids = get_draft_players(draft_id, con)
+    if playerA_id not in draft_player_ids:
+        log.error('Player "{}" is not part of draft "{}"!'.format(
+            get_player_name_by_id(playerA_id, con), get_draft_name_by_id(draft_id, con)))
+        return
+    if playerB_id not in draft_player_ids:
+        log.error('Player "{}" is not part of draft "{}"!'.format(
+            get_player_name_by_id(playerB_id, con), get_draft_name_by_id(draft_id, con)))
+        return
+
+    # check for correct pairings
+    player_pairings = get_draft_pairings_by_draft_id(draft_id, draft_round, con)
+    if (playerA_id, playerB_id) not in player_pairings \
+            and (playerB_id, playerA_id) not in player_pairings:
+        confirmation = get_confimation('    This game is not part of a pairing! Continue anyway?', default=False)
+        if not confirmation:
+            return
+
+    game_id = hande_add_game_result(playerA_id, playerB_id, result_string, con)
+    if game_id is None:
+        return
+    add_game_id_to_draft(game_id, draft_id, draft_round, con)

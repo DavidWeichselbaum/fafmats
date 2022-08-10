@@ -339,3 +339,13 @@ d smoldraft p
 y
 
 d smoldraft P
+
+d smoldraft g
+hugh dixi 2:0
+y
+
+d smoldraft g
+hugh ivana 2:0
+
+d smoldraft g
+hugh dixi 2:0

@@ -11,6 +11,7 @@ from utils.db_utils import init_db
 from utils.cli_utils import handle_add_player, handle_add_game, \
     handle_show_players, handle_show_games, handle_show_history, handle_show_drafts, \
     handle_draft, handle_show_score
+from data_types import HandleException
 
 
 coloredlogs.DEFAULT_FIELD_STYLES['filename'] = {'color': 'magenta'}
@@ -87,8 +88,11 @@ while True:
         else:
             log.error('Not a flag: "{}"'.format(flag))
 
-    except (KeyboardInterrupt, EOFError):
+    except EOFError:
         break
+    except (KeyboardInterrupt, HandleException):
+        print()
+        pass
     except BaseException:
         log.error(format_exc())
     else:

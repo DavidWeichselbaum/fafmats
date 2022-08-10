@@ -41,6 +41,17 @@ def add_game(playerA_id, playerB_id, result, con):
     return game_id
 
 
+def get_player_ids_by_game(game_id, con):
+    sql = 'SELECT id FROM game WHERE id = ?'
+    data = [game_id]
+    result = con.execute(sql, data)
+    players = result.fetchall()
+    print(players)
+    if len(players) != 1:
+        return None
+    return players[0][0]
+
+
 def update_elo(player_id, elo_difference, game_id, con):
     elo_before = get_player_elo(player_id, con)
     elo_after = elo_before + elo_difference
@@ -280,6 +291,18 @@ def get_n_encounters(playerA_id, playerB_id, con):
         """, data)
     player_results = result.fetchall()
     return len(player_results)
+
+
+def get_draft_players(draft_id, con):
+    sql = """
+        SELECT dp.player FROM draftPlayer dp
+            WHERE dp.draft = ?
+            ORDER BY dp.rank
+        """
+    result = con.execute(sql, [draft_id])
+    data = result.fetchall()
+    player_ids = [player_tuple[0] for player_tuple in data]
+    return player_ids
 
 
 def get_draft_player_table(draft_id, con):
