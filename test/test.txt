@@ -346,6 +346,16 @@ y
 
 d smoldraft g
 hugh ivana 2:0
+y
 
 d smoldraft g
 hugh dixi 2:0
+y
+
+d smoldraft g
+mike stu 1:2
+y
+
+d smoldraft g
+yuri pat 0:2
+y

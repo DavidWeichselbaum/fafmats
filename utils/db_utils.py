@@ -260,8 +260,10 @@ def get_drafts_table(con, player_id=None, draft_id=None):
 def get_draft_table(draft_id, con):
     draft_table = get_drafts_table(con, draft_id=draft_id)
     player_table = get_draft_player_table(draft_id, con)
+    games_table = get_draft_games_table(draft_id, con)
 
-    return_string = '#### Draft:\n{}\n\n#### Players:\n{}'.format(draft_table, player_table)
+    return_string = '#### Draft:\n{}\n\n#### Players:\n{}\n\n#### Games:\n{}'.format(
+        draft_table, player_table, games_table)
     return return_string
 
 
@@ -322,6 +324,39 @@ def get_draft_player_table(draft_id, con):
     for name, rank, active in data:
         formatted_data.append((name, rank, bool(active)))
     return tabulate(formatted_data, headers=('name', 'rank', 'active'))
+
+
+# CREATE TABLE draftGame (
+#     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+#     game INTEGER,
+#     draft INTEGER,
+#     round INTEGER,
+#     FOREIGN KEY(game) REFERENCES game(id),
+#     FOREIGN KEY(draft) REFERENCES draft(id)
+# );
+# SELECT p1.name, p2.name, m.result, m.date FROM game m
+#     LEFT JOIN player p1
+#         ON m.playerA = p1.id
+#     LEFT JOIN player p2
+#         ON m.playerB = p2.id
+#     WHERE m.playerA = ? OR m.playerB = ?
+#     ORDER BY m.date
+def get_draft_games_table(draft_id, con):
+    sql = """
+        SELECT dg.round, p1.name, p2.name, g.result, g.date FROM draftGame dg
+            LEFT JOIN game g
+                ON dg.game = g.id
+            LEFT JOIN player p1
+                ON g.playerA = p1.id
+            LEFT JOIN player p2
+                ON g.playerB = p2.id
+            WHERE dg.draft = ?
+            ORDER BY dg.round
+        """
+    result = con.execute(sql, [draft_id])
+    data = result.fetchall()
+
+    return tabulate(data, headers=('round', 'player', 'player', 'result', 'date'))
 
 
 def get_round_by_draft_id(draft_id, con):
